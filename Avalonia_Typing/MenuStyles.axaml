@@ -1,0 +1,55 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Popup">
+    <Setter Property="VerticalOffset" Value="5" />
+    <Setter Property="HorizontalOffset" Value="-2" />
+  </Style>
+  <Style Selector="MenuItem">
+    <Setter Property="FontFamily" Value="Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="#CCC" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="12,5" />
+  </Style>
+  <Style Selector="MenuItem:pointerover">
+    <Setter Property="Background" Value="#A23" />
+    <Setter Property="BorderBrush" Value="#3CB" />
+  </Style>
+  <Style Selector="MenuItem:selected">
+    <Setter Property="BorderBrush" Value="#3CB" />
+  </Style>
+  <!--  一级菜单悬停和选中  -->
+  <Style Selector="MenuItem.top-level:pointerover">
+    <Setter Property="Background" Value="#456" />
+    <Setter Property="BorderBrush" Value="#3CB" />
+  </Style>
+  <Style Selector="MenuItem.top-level:selected">
+    <Setter Property="Background" Value="#456" />
+    <Setter Property="BorderBrush" Value="#3CB" />
+  </Style>
+  <!--  二级菜单正常、悬停、选中  -->
+  <Style Selector="MenuItem.sub-menu">
+    <Setter Property="FontFamily" Value="HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+  </Style>
+  <Style Selector="MenuItem.sub-menu TextBlock">
+    <Setter Property="FontFamily" Value="Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+  </Style>
+  <Style Selector="MenuItem.sub-menu:pointerover">
+    <Setter Property="Background" Value="#345" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="MenuItem.sub-menu:selected">
+    <Setter Property="Background" Value="#345" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <!--  三级菜单悬停和选中  -->
+  <Style Selector="Menu &gt; MenuItem &gt; MenuItem &gt; MenuItem:pointerover">
+    <Setter Property="Background" Value="LightYellow" />
+    <Setter Property="BorderBrush" Value="Orange" />
+  </Style>
+  <Style Selector="Menu &gt; MenuItem &gt; MenuItem &gt; MenuItem:selected">
+    <Setter Property="Background" Value="Yellow" />
+    <Setter Property="BorderBrush" Value="#FFD700" />
+  </Style>
+</Styles>

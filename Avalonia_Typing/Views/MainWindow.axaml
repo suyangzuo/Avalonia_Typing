@@ -1,0 +1,159 @@
+<Window
+        x:Class="Avalonia_Typing.Views.MainWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:Avalonia_Typing.Views"
+        xmlns:vm="using:Avalonia_Typing.ViewModels"
+        Title="十指禅"
+        Width="1200"
+        Height="750"
+        MinWidth="800"
+        MinHeight="500"
+        d:DesignHeight="1000"
+        d:DesignWidth="1500"
+        Icon="/Assets/ICO/十指禅.ico"
+        WindowStartupLocation="CenterScreen"
+        mc:Ignorable="d">
+        <DockPanel>
+                <Menu DockPanel.Dock="Top">
+                        <MenuItem Classes="top-level" Header="文件">
+                                <MenuItem Classes="sub-menu" Header="🚪 退出" />
+                        </MenuItem>
+                        <MenuItem Classes="top-level" Header="设置">
+                                <MenuItem Classes="sub-menu" Header="👤 姓名" />
+                                <MenuItem Classes="sub-menu" Header="⏱️ 计时" />
+                                <MenuItem Classes="sub-menu" Header="📊 统计" />
+                        </MenuItem>
+                        <MenuItem Classes="top-level" Header="文本选择">
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/C.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="C" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/Computer.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="Computer" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/Electron.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="Electron" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/Java.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="Java" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/JavaScript.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="JavaScript" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/Life.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="Life" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/Linux.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="Linux" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/MySQL.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="MySQL" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/Node.js.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="Node.js" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/Python.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="Python" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <Image
+                                                                Width="16"
+                                                                Height="16"
+                                                                Source="avares://Avalonia_Typing/Assets/Images/PNG/Vue.png" />
+                                                        <TextBlock Margin="5,0,0,0" Text="Vue" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                        </MenuItem>
+                        <MenuItem Classes="top-level" Header="帮助">
+                                <MenuItem Classes="sub-menu" Header="❓ 使用说明" />
+                                <MenuItem Classes="sub-menu" Header="ℹ️ 关于" />
+                        </MenuItem>
+                </Menu>
+                <views:MainView />
+        </DockPanel>
+</Window>
