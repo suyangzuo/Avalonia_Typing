@@ -17,7 +17,7 @@
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
         <DockPanel>
-                <Menu DockPanel.Dock="Top">
+                <Menu Name="MainMenu" DockPanel.Dock="Top">
                         <MenuItem Classes="top-level" Header="文件">
                                 <MenuItem Classes="sub-menu" Header="🚪 退出" />
                         </MenuItem>

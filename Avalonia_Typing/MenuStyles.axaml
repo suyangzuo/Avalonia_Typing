@@ -1,55 +1,190 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--  资源字典：定义可重用的颜色、字体、尺寸等资源  -->
+  <Styles.Resources>
+    <!--  颜色资源（用于 Foreground 等需要 Color 的属性）  -->
+    <Color x:Key="MenuBackgroundColor">#242424</Color>
+    <Color x:Key="MenuItemForegroundColor">#CCC</Color>
+    <Color x:Key="TopLevelMenuBorderColor">#3CB</Color>
+    <Color x:Key="SubMenuHoverBackgroundColor">#8467</Color>
+    <Color x:Key="SubMenuSelectedBackgroundColor">#8467</Color>
+    <Color x:Key="SubMenuRememberedBackgroundColor">#846</Color>
+    <Color x:Key="ThirdMenuPopupBackgroundColor">#282828</Color>
+    <Color x:Key="ThirdMenuHoverBackgroundColor">#258</Color>
+    <Color x:Key="ThirdMenuSelectedBackgroundColor">#8467</Color>
+    <Color x:Key="ThirdMenuRememberedBackgroundColor">#846</Color>
+    <Color x:Key="MenuNumberForegroundColor">Gray</Color>
+    <Color x:Key="MenuNumberHoverForegroundColor">Silver</Color>
+    <Color x:Key="MenuCharCountForegroundColor">LightSkyBlue</Color>
+
+    <!--  Brush 资源（用于 Background、BorderBrush 等需要 Brush 的属性）  -->
+    <SolidColorBrush x:Key="MenuBackgroundBrush" Color="{StaticResource MenuBackgroundColor}" />
+    <SolidColorBrush x:Key="MenuItemForegroundBrush" Color="{StaticResource MenuItemForegroundColor}" />
+    <SolidColorBrush x:Key="TopLevelMenuBorderBrush" Color="{StaticResource TopLevelMenuBorderColor}" />
+    <SolidColorBrush x:Key="SubMenuHoverBackgroundBrush" Color="{StaticResource SubMenuHoverBackgroundColor}" />
+    <SolidColorBrush x:Key="SubMenuSelectedBackgroundBrush" Color="{StaticResource SubMenuSelectedBackgroundColor}" />
+    <SolidColorBrush x:Key="SubMenuRememberedBackgroundBrush" Color="{StaticResource SubMenuRememberedBackgroundColor}" />
+    <SolidColorBrush x:Key="ThirdMenuPopupBackgroundBrush" Color="{StaticResource ThirdMenuPopupBackgroundColor}" />
+    <SolidColorBrush x:Key="ThirdMenuHoverBackgroundBrush" Color="{StaticResource ThirdMenuHoverBackgroundColor}" />
+    <SolidColorBrush x:Key="ThirdMenuSelectedBackgroundBrush" Color="{StaticResource ThirdMenuSelectedBackgroundColor}" />
+    <SolidColorBrush x:Key="ThirdMenuRememberedBackgroundBrush" Color="{StaticResource ThirdMenuRememberedBackgroundColor}" />
+    <SolidColorBrush x:Key="TransparentBrush">Transparent</SolidColorBrush>
+    <SolidColorBrush x:Key="MenuNumberForegroundBrush" Color="{StaticResource MenuNumberForegroundColor}" />
+    <SolidColorBrush x:Key="MenuNumberHoverForegroundBrush" Color="{StaticResource MenuNumberHoverForegroundColor}" />
+    <SolidColorBrush x:Key="MenuCharCountForegroundBrush" Color="{StaticResource MenuCharCountForegroundColor}" />
+
+    <!--  字体资源  -->
+    <FontFamily x:Key="MenuItemFontFamily">Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑</FontFamily>
+    <FontFamily x:Key="SubMenuFontFamily">HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑</FontFamily>
+
+    <!--  尺寸资源  -->
+    <x:Double x:Key="MenuItemFontSize">14</x:Double>
+    <Thickness x:Key="MenuPadding">8,0</Thickness>
+    <Thickness x:Key="MenuItemPadding">12,5</Thickness>
+    <Thickness x:Key="SubMenuMargin">4,0</Thickness>
+    <Thickness x:Key="ThirdMenuMargin">4,0</Thickness>
+    <Thickness x:Key="MenuItemBorderThickness">1</Thickness>
+    <Thickness x:Key="SubMenuImageMargin">-4,0,4,0</Thickness>
+    <Thickness x:Key="MenuNumberMargin">0,2,15,0</Thickness>
+    <Thickness x:Key="MenuNameMargin">0,0,15,0</Thickness>
+    <Thickness x:Key="MenuCharCountMargin">0,2,15,0</Thickness>
+
+    <!--  Popup 偏移资源  -->
+    <x:Double x:Key="PopupVerticalOffset">5</x:Double>
+    <x:Double x:Key="PopupHorizontalOffset">-4</x:Double>
+  </Styles.Resources>
+
+  <!--  菜单栏背景色  -->
+  <Style Selector="Menu">
+    <Setter Property="Background" Value="{StaticResource MenuBackgroundBrush}" />
+    <Setter Property="Padding" Value="{StaticResource MenuPadding}" />
+  </Style>
   <Style Selector="Popup">
-    <Setter Property="VerticalOffset" Value="5" />
-    <Setter Property="HorizontalOffset" Value="-2" />
+    <Setter Property="VerticalOffset" Value="{StaticResource PopupVerticalOffset}" />
+    <Setter Property="HorizontalOffset" Value="{StaticResource PopupHorizontalOffset}" />
+  </Style>
+  <Style Selector="MenuItem.sub-menu /template/ Popup#PART_Popup">
+    <Setter Property="HorizontalOffset" Value="8" />
+    <Setter Property="VerticalOffset" Value="0" />
   </Style>
   <Style Selector="MenuItem">
-    <Setter Property="FontFamily" Value="Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="Foreground" Value="#CCC" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="Padding" Value="12,5" />
+    <Setter Property="FontFamily" Value="{StaticResource MenuItemFontFamily}" />
+    <Setter Property="FontSize" Value="{StaticResource MenuItemFontSize}" />
+    <Setter Property="Foreground" Value="{StaticResource MenuItemForegroundBrush}" />
+    <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+    <Setter Property="BorderThickness" Value="{StaticResource MenuItemBorderThickness}" />
+    <Setter Property="Padding" Value="{StaticResource MenuItemPadding}" />
   </Style>
-  <Style Selector="MenuItem:pointerover">
-    <Setter Property="Background" Value="#A23" />
-    <Setter Property="BorderBrush" Value="#3CB" />
-  </Style>
-  <Style Selector="MenuItem:selected">
-    <Setter Property="BorderBrush" Value="#3CB" />
-  </Style>
-  <!--  一级菜单悬停和选中  -->
+  <!--  一级菜单悬停和选中（只应用到菜单栏中的一级菜单项，不应用到弹出菜单）  -->
+  <!--  设置 MenuItem 本身的样式  -->
   <Style Selector="MenuItem.top-level:pointerover">
-    <Setter Property="Background" Value="#456" />
-    <Setter Property="BorderBrush" Value="#3CB" />
+    <Setter Property="BorderBrush" Value="{StaticResource TopLevelMenuBorderBrush}" />
   </Style>
   <Style Selector="MenuItem.top-level:selected">
-    <Setter Property="Background" Value="#456" />
-    <Setter Property="BorderBrush" Value="#3CB" />
+    <Setter Property="BorderBrush" Value="{StaticResource TopLevelMenuBorderBrush}" />
   </Style>
   <!--  二级菜单正常、悬停、选中  -->
   <Style Selector="MenuItem.sub-menu">
-    <Setter Property="FontFamily" Value="HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+    <Setter Property="FontFamily" Value="{StaticResource SubMenuFontFamily}" />
+    <Setter Property="Margin" Value="{StaticResource SubMenuMargin}" />
   </Style>
   <Style Selector="MenuItem.sub-menu TextBlock">
-    <Setter Property="FontFamily" Value="Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+    <Setter Property="FontFamily" Value="{StaticResource MenuItemFontFamily}" />
   </Style>
+  <Style Selector="MenuItem.sub-menu Border">
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+    <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
+  </Style>
+  <!--  二级菜单悬停样式（使用 Panel 而不是 Border）  -->
+  <!--  确保 MenuItem 和 Border 的背景都是透明的，只有 Panel 有背景色  -->
   <Style Selector="MenuItem.sub-menu:pointerover">
-    <Setter Property="Background" Value="#345" />
-    <Setter Property="BorderBrush" Value="Transparent" />
+    <!-- <Setter Property="Background" Value="{StaticResource TransparentBrush}" /> -->
   </Style>
+  <Style Selector="MenuItem.sub-menu:pointerover /template/ Panel">
+    <!-- <Setter Property="Background" Value="{StaticResource SubMenuHoverBackgroundBrush}" /> -->
+  </Style>
+  <!--  二级菜单选中样式（使用 Panel 而不是 Border）  -->
   <Style Selector="MenuItem.sub-menu:selected">
-    <Setter Property="Background" Value="#345" />
-    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
   </Style>
-  <!--  三级菜单悬停和选中  -->
-  <Style Selector="Menu &gt; MenuItem &gt; MenuItem &gt; MenuItem:pointerover">
-    <Setter Property="Background" Value="LightYellow" />
-    <Setter Property="BorderBrush" Value="Orange" />
+  <Style Selector="MenuItem.sub-menu:selected /template/ Panel">
+    <Setter Property="Background" Value="{StaticResource SubMenuSelectedBackgroundBrush}" />
   </Style>
-  <Style Selector="Menu &gt; MenuItem &gt; MenuItem &gt; MenuItem:selected">
-    <Setter Property="Background" Value="Yellow" />
-    <Setter Property="BorderBrush" Value="#FFD700" />
+  <!--  二级菜单记住状态样式（使用 remembered 类）  -->
+  <Style Selector="MenuItem.sub-menu.remembered">
+    <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="MenuItem.sub-menu.remembered /template/ Panel">
+    <Setter Property="Background" Value="{StaticResource SubMenuRememberedBackgroundBrush}" />
+  </Style>
+  <!--  三级菜单悬停和选中（使用 third-menu 类）  -->
+  <Style Selector="MenuItem.third-menu">
+    <Setter Property="Margin" Value="{StaticResource ThirdMenuMargin}" />
+  </Style>
+  <Style Selector="MenuItem.third-menu:pointerover">
+    <Setter Property="Background" Value="{StaticResource ThirdMenuHoverBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+  </Style>
+  <Style Selector="MenuItem.third-menu:pointerover Border">
+    <Setter Property="Background" Value="{StaticResource ThirdMenuHoverBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+  </Style>
+  <Style Selector="MenuItem.third-menu:selected">
+    <Setter Property="Background" Value="{StaticResource ThirdMenuSelectedBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+  </Style>
+  <Style Selector="MenuItem.third-menu:selected Border">
+    <Setter Property="Background" Value="{StaticResource ThirdMenuSelectedBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+  </Style>
+  <!--  三级菜单记住状态样式（使用 remembered 类）  -->
+  <Style Selector="MenuItem.third-menu.remembered">
+    <Setter Property="Background" Value="{StaticResource ThirdMenuRememberedBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="MenuItem.third-menu.remembered Border">
+    <Setter Property="Background" Value="{StaticResource ThirdMenuRememberedBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+  </Style>
+  <!--  二级菜单弹出框（整体）背景色和边框色 - 必须在最后定义以确保覆盖所有其他样式  -->
+  <!--  使用 Border 作为容器，避免背景色溢出到内容区域  -->
+  <!--  确保所有 Popup 的 Border 背景色都是透明的  -->
+  <Style Selector="Popup Border">
+    <!-- <Setter Property="Background" Value="{StaticResource TransparentBrush}" /> -->
+    <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+  </Style>
+  <!--  如果 Popup 内部有 Panel，确保它不设置背景色，让 Border 的背景色显示  -->
+  <Style Selector="MenuItem.sub-menu Image">
+    <Setter Property="Margin" Value="{StaticResource SubMenuImageMargin}" />
+  </Style>
+  <!--  三级菜单弹出框（从二级菜单项弹出的 Popup）整体背景色  -->
+  <Style Selector="MenuItem.sub-menu Popup Border">
+    <!-- <Setter Property="Background" Value="{StaticResource ThirdMenuPopupBackgroundBrush}" /> -->
+    <!-- <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" /> -->
+  </Style>
+  <!--  确保三级菜单弹出框内的 Panel 背景色也是设置的背景色  -->
+  <Style Selector="MenuItem.sub-menu Popup Panel">
+    <Setter Property="Background" Value="{StaticResource ThirdMenuPopupBackgroundBrush}" />
+  </Style>
+
+  <!--  三级菜单文本样式  -->
+  <Style Selector="MenuItem.third-menu TextBlock.menu-number">
+    <Setter Property="Margin" Value="{StaticResource MenuNumberMargin}" />
+    <Setter Property="Foreground" Value="{StaticResource MenuNumberForegroundBrush}" />
+  </Style>
+  <Style Selector="MenuItem.third-menu:pointerover TextBlock.menu-number">
+    <Setter Property="Foreground" Value="{StaticResource MenuNumberHoverForegroundBrush}" />
+  </Style>
+  <Style Selector="MenuItem.third-menu TextBlock.menu-name">
+    <Setter Property="Margin" Value="{StaticResource MenuNameMargin}" />
+  </Style>
+  <Style Selector="MenuItem.third-menu TextBlock.menu-charcount">
+    <Setter Property="Margin" Value="{StaticResource MenuCharCountMargin}" />
+    <Setter Property="Foreground" Value="{StaticResource MenuCharCountForegroundBrush}" />
+  </Style>
+  <Style Selector="MenuItem.third-menu.remembered TextBlock.menu-number">
+    <Setter Property="Foreground" Value="Silver" />
   </Style>
 </Styles>

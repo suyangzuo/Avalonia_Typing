@@ -11,6 +11,7 @@
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="WindowStyles.axaml" />
         <StyleInclude Source="MenuStyles.axaml" />
     </Application.Styles>
 </Application>
