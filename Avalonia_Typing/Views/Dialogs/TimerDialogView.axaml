@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Avalonia_Typing.Views.Dialogs.TimerDialogView"
+             Classes="dialog-content">
+  <StackPanel Margin="0" Spacing="8">
+    <TextBlock Text="计时设置：" Classes="dialog-title" />
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <TextBlock Text="分钟" VerticalAlignment="Center" Classes="dialog-text"/>
+      <TextBox Width="80" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>
+

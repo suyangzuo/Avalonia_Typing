@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Avalonia_Typing.Views.Dialogs.HelpDialogView"
+             Classes="dialog-content">
+  <StackPanel Margin="0" Spacing="8">
+    <TextBlock Text="使用说明" Classes="dialog-title"/>
+    <TextBlock Text="在此放置使用说明内容。" Classes="dialog-text"/>
+  </StackPanel>
+</UserControl>
+

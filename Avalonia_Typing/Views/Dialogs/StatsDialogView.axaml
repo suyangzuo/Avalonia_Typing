@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Avalonia_Typing.Views.Dialogs.StatsDialogView"
+             Classes="dialog-content">
+  <StackPanel Margin="0" Spacing="8">
+    <TextBlock Text="统计" Classes="dialog-title"/>
+    <TextBlock Text="在此展示统计信息。" Classes="dialog-text"/>
+  </StackPanel>
+</UserControl>
+

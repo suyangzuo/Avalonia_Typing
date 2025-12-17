@@ -1,0 +1,43 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  对话框窗口样式  -->
+    <Style Selector="Window.dialog-window">
+        <!--  仅保留必要设置；CanResize=False 通常会隐藏/禁用最小化/最大化  -->
+        <Setter Property="SizeToContent" Value="WidthAndHeight" />
+        <Setter Property="CanResize" Value="False" />
+        <Setter Property="WindowStartupLocation" Value="CenterOwner" />
+    </Style>
+
+    <!--  对话框按钮样式  -->
+    <Style Selector="Button.dialog-button">
+        <Setter Property="MinWidth" Value="80" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+    </Style>
+
+    <!--  悬停背景，双重覆盖模板内 Border/ContentPresenter，避免主题覆盖  -->
+    <Style Selector="Button.dialog-button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#248" />
+    </Style>
+
+    <!--  对话框内容统一样式  -->
+    <Style Selector="UserControl.dialog-content">
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <!--  通用正文文本样式（给 TextBlock 加 dialog-text 类即可）  -->
+    <Style Selector="TextBlock.dialog-text">
+        <Setter Property="Foreground" Value="DarkGray" />
+        <Setter Property="FontFamily" Value="Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!--  标题样式  -->
+    <Style Selector="TextBlock.dialog-title">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+</Styles>

@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Avalonia_Typing.Views.Dialogs.NameDialogView"
+             Classes="dialog-content">
+  <StackPanel Margin="0" Spacing="8">
+    <TextBlock Text="请输入姓名：" Classes="dialog-title" />
+    <TextBox Width="200" />
+  </StackPanel>
+</UserControl>
+

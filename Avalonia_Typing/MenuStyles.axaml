@@ -118,6 +118,27 @@
   <Style Selector="MenuItem.sub-menu.remembered /template/ Panel">
     <Setter Property="Background" Value="{StaticResource SubMenuRememberedBackgroundBrush}" />
   </Style>
+  <Style Selector="MenuItem.sub-menu /template/ Path">
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="RenderTransform">
+      <TransformGroup>
+        <ScaleTransform ScaleX="0.6" ScaleY="0.5" />
+        <TranslateTransform X="0" Y="3.5" />
+      </TransformGroup>
+    </Setter>
+    <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Fill" Value="{StaticResource MenuItemForegroundBrush}" />
+  </Style>
+  <Style Selector="MenuItem.sub-menu:pointerover /template/ Path">
+    <Setter Property="Fill" Value="White" />
+  </Style>
+  <Style Selector="MenuItem.sub-menu:selected /template/ Path">
+    <Setter Property="Fill" Value="White" />
+  </Style>
+  <Style Selector="MenuItem.sub-menu.remembered /template/ Path">
+    <Setter Property="Fill" Value="White" />
+  </Style>
   <!--  三级菜单悬停和选中（使用 third-menu 类）  -->
   <Style Selector="MenuItem.third-menu">
     <Setter Property="Margin" Value="{StaticResource ThirdMenuMargin}" />

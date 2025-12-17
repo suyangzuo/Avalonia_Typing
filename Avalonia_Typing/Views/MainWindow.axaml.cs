@@ -1,12 +1,16 @@
+using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
+using Avalonia.Media;
 using Avalonia.Platform;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Avalonia_Typing.Views.Dialogs;
 
 namespace Avalonia_Typing.Views;
 
@@ -22,6 +26,7 @@ public partial class MainWindow : Window
         LoadThirdLevelMenus();
         AttachMenuClickHandlers();
         ApplyRememberedSelection();
+        AttachDialogMenuHandlers();
     }
 
     private void LoadThirdLevelMenus()
@@ -185,7 +190,7 @@ public partial class MainWindow : Window
                 // 为三级菜单项添加点击事件
                 foreach (var thirdMenuItem in subMenuItem.Items.OfType<MenuItem>())
                 {
-                    thirdMenuItem.Click += (sender, e) =>
+                    thirdMenuItem.Click += (sender, _) =>
                     {
                         if (sender is MenuItem item && item.Tag is string fileName)
                         {
@@ -251,6 +256,120 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"应用记住的选中状态失败: {ex.Message}");
+        }
+    }
+
+    private void AttachDialogMenuHandlers()
+    {
+        if (MainMenu == null) return;
+
+        // 目标菜单及其图标和按钮配置
+        var dialogItems = new Dictionary<string, (string Emoji, bool HasCancel)>
+        {
+            { "姓名", ("👤", true) },
+            { "计时", ("⏱️", true) },
+            { "统计", ("📊", false) },
+            { "使用说明", ("❓", false) },
+            { "关于", ("ℹ️", false) },
+        };
+
+        // 遍历所有二级菜单项，匹配文字部分
+        foreach (var menuItem in EnumerateMenuItems(MainMenu.Items))
+        {
+            var text = GetSecondLevelText(menuItem);
+            if (text != null && dialogItems.TryGetValue(text, out var info))
+            {
+                menuItem.Click += async (_, _) => await ShowDialogForMenu(text, info.Emoji, info.HasCancel);
+            }
+        }
+    }
+
+    private static string? GetSecondLevelText(MenuItem item)
+    {
+        if (item.Header is StackPanel sp)
+        {
+            // 期望：第一个 TextBlock 是 Emoji，第二个是文本
+            var textBlocks = sp.Children.OfType<TextBlock>().ToList();
+            if (textBlocks.Count >= 2)
+            {
+                return textBlocks[1].Text;
+            }
+        }
+        else if (item.Header is string s)
+        {
+            return s;
+        }
+        return null;
+    }
+
+    private async Task ShowDialogForMenu(string titleText, string emoji, bool hasCancel)
+    {
+        var dialog = new Window
+        {
+            Title = $"{emoji} {titleText}",
+        };
+        dialog.Classes.Add("dialog-window");
+
+        Control content = titleText switch
+        {
+            "姓名" => new NameDialogView(),
+            "计时" => new TimerDialogView(),
+            "统计" => new StatsDialogView(),
+            "使用说明" => new HelpDialogView(),
+            "关于" => new AboutDialogView(),
+            _ => new TextBlock { Text = $"这里是“{titleText}”对话框内容。", TextWrapping = TextWrapping.Wrap }
+        };
+
+        var buttonPanel = new StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            Spacing = 8
+        };
+
+        var okButton = new Button
+        {
+            Content = "确定"
+        };
+        okButton.Classes.Add("dialog-button");
+        okButton.Click += (_, _) => dialog.Close(true);
+        buttonPanel.Children.Add(okButton);
+
+        if (hasCancel)
+        {
+            var cancelButton = new Button
+            {
+                Content = "取消"
+            };
+            cancelButton.Classes.Add("dialog-button");
+            cancelButton.Click += (_, _) => dialog.Close(false);
+            buttonPanel.Children.Add(cancelButton);
+        }
+
+        dialog.Content = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Spacing = 12,
+            Children =
+            {
+                content,
+                buttonPanel
+            }
+        };
+
+        await dialog.ShowDialog(this);
+    }
+
+    private static IEnumerable<MenuItem> EnumerateMenuItems(IEnumerable items)
+    {
+        foreach (var obj in items)
+        {
+            if (obj is MenuItem mi)
+            {
+                yield return mi;
+                foreach (var child in EnumerateMenuItems(mi.Items))
+                    yield return child;
+            }
         }
     }
 }

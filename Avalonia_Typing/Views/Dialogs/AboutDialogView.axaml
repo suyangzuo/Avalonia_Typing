@@ -1,0 +1,16 @@
+<UserControl
+    x:Class="Avalonia_Typing.Views.Dialogs.AboutDialogView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Classes="dialog-content">
+    <StackPanel
+        Margin="0"
+        Spacing="8">
+        <TextBlock
+            Classes="dialog-title"
+            Text="十指禅" />
+        <TextBlock Classes="dialog-text" Text="基于 Avalonia 的打字练习App" />
+        <TextBlock Classes="dialog-text" Text="作者：苏扬" />
+        <TextBlock Classes="dialog-text" Text="版本：1.0.0" />
+    </StackPanel>
+</UserControl>

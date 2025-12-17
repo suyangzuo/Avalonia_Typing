@@ -19,12 +19,40 @@
         <DockPanel>
                 <Menu Name="MainMenu" DockPanel.Dock="Top">
                         <MenuItem Classes="top-level" Header="文件">
-                                <MenuItem Classes="sub-menu" Header="🚪 退出" />
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🚪" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="退出" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
                         </MenuItem>
                         <MenuItem Classes="top-level" Header="设置">
-                                <MenuItem Classes="sub-menu" Header="👤 姓名" />
-                                <MenuItem Classes="sub-menu" Header="⏱️ 计时" />
-                                <MenuItem Classes="sub-menu" Header="📊 统计" />
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="👤" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="姓名" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="⏱️" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="计时" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="📊" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="统计" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
                         </MenuItem>
                         <MenuItem Classes="top-level" Header="文本选择">
                                 <MenuItem Classes="sub-menu">
@@ -150,8 +178,22 @@
                                 </MenuItem>
                         </MenuItem>
                         <MenuItem Classes="top-level" Header="帮助">
-                                <MenuItem Classes="sub-menu" Header="❓ 使用说明" />
-                                <MenuItem Classes="sub-menu" Header="ℹ️ 关于" />
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="❓" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="使用说明" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="ℹ️" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="关于" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
                         </MenuItem>
                 </Menu>
                 <views:MainView />
