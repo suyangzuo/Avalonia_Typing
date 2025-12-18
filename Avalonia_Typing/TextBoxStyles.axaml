@@ -1,0 +1,45 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="TextBox">
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="FontFamily" Value="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="#666" />
+    <Setter Property="Background" Value="#222" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="SelectionBrush" Value="#4A90E2" />
+    <Setter Property="CaretBrush" Value="White" />
+  </Style>
+
+  <Style Selector="TextBox:pointerover">
+    <Setter Property="BorderBrush" Value="#888" />
+    <!-- <Setter Property="Background" Value="#333" /> -->
+  </Style>
+
+  <Style Selector="TextBox:focus">
+    <Setter Property="BorderBrush" Value="#4A90E2" />
+    <!-- <Setter Property="Background" Value="#333" /> -->
+  </Style>
+
+  <!--  覆盖模板内部边框/内容的背景，避免主题强制覆盖  -->
+  <!--  统一控制模板 Border，避免背景溢出；背景由外层 TextBox 控制  -->
+  <Style Selector="TextBox /template/ Border">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="TextBox:pointerover /template/ Border">
+    <Setter Property="Background" Value="#222" />
+    <Setter Property="BorderBrush" Value="#888" />
+  </Style>
+  <Style Selector="TextBox:focus /template/ Border">
+    <Setter Property="Background" Value="#222" />
+    <Setter Property="BorderBrush" Value="#4A90E2" />
+  </Style>
+
+  <!--  对话框内文本框（可按需单独调整）  -->
+  <Style Selector="TextBox.dialog-textbox">
+    <!--  继承基础 TextBox 样式；若需定制可在此添加 Setter  -->
+  </Style>
+</Styles>

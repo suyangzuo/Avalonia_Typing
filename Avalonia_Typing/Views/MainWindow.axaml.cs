@@ -7,6 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -19,10 +21,22 @@ public partial class MainWindow : Window
     // 保存选中的二级菜单项和三级菜单项的标识
     private string? _rememberedSubMenuKey;
     private string? _rememberedThirdMenuFileName;
+    private const string DefaultName = "江湖人士";
+    private readonly string _stateJsonPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "Avalonia_Typing",
+        "window.state.json");
+    private string _currentName = DefaultName;
+    private bool _isCountdownEnabled = false; // 倒计时功能是否启用
+    private int _timerHours = 0; // 计时器小时数
+    private int _timerMinutes = 0; // 计时器分钟数
+    private int _timerSeconds = 0; // 计时器秒数
 
     public MainWindow()
     {
         InitializeComponent();
+        LoadNameFromJson();
+        LoadTimerSettingsFromJson();
         LoadThirdLevelMenus();
         AttachMenuClickHandlers();
         ApplyRememberedSelection();
@@ -304,6 +318,8 @@ public partial class MainWindow : Window
 
     private async Task ShowDialogForMenu(string titleText, string emoji, bool hasCancel)
     {
+        TextBox? nameInput = null;
+
         var dialog = new Window
         {
             Title = $"{emoji} {titleText}",
@@ -320,6 +336,40 @@ public partial class MainWindow : Window
             _ => new TextBlock { Text = $"这里是“{titleText}”对话框内容。", TextWrapping = TextWrapping.Wrap }
         };
 
+        if (titleText == "姓名" && content is NameDialogView nameView)
+        {
+            nameInput = nameView.FindControl<TextBox>("NameInput");
+            if (nameInput != null)
+            {
+                nameInput.Text = _currentName;
+            }
+        }
+        else if (titleText == "计时" && content is TimerDialogView timerView)
+        {
+            // 加载当前的时、分、秒和倒计时状态
+            var hoursInput = timerView.FindControl<TextBox>("HoursInput");
+            var minutesInput = timerView.FindControl<TextBox>("MinutesInput");
+            var secondsInput = timerView.FindControl<TextBox>("SecondsInput");
+            var countdownCheckBox = timerView.FindControl<CheckBox>("CountdownCheckBox");
+
+            if (hoursInput != null)
+            {
+                hoursInput.Text = _timerHours.ToString();
+            }
+            if (minutesInput != null)
+            {
+                minutesInput.Text = _timerMinutes.ToString();
+            }
+            if (secondsInput != null)
+            {
+                secondsInput.Text = _timerSeconds.ToString();
+            }
+            if (countdownCheckBox != null)
+            {
+                countdownCheckBox.IsChecked = _isCountdownEnabled;
+            }
+        }
+
         var buttonPanel = new StackPanel
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal,
@@ -332,7 +382,28 @@ public partial class MainWindow : Window
             Content = "确定"
         };
         okButton.Classes.Add("dialog-button");
-        okButton.Click += (_, _) => dialog.Close(true);
+        okButton.Click += (_, _) =>
+        {
+            if (titleText == "姓名" && nameInput != null)
+            {
+                var newName = (nameInput.Text ?? string.Empty).Trim();
+                if (!string.IsNullOrWhiteSpace(newName))
+                {
+                    _currentName = newName;
+                    SaveNameToJson(newName);
+                }
+            }
+            else if (titleText == "计时" && content is TimerDialogView timerView)
+            {
+                // 保存时、分、秒和倒计时状态
+                _timerHours = timerView.Hours;
+                _timerMinutes = timerView.Minutes;
+                _timerSeconds = timerView.Seconds;
+                _isCountdownEnabled = timerView.IsCountdown;
+                SaveTimerSettingsToJson(_timerHours, _timerMinutes, _timerSeconds, _isCountdownEnabled);
+            }
+            dialog.Close(true);
+        };
         buttonPanel.Children.Add(okButton);
 
         if (hasCancel)
@@ -370,6 +441,273 @@ public partial class MainWindow : Window
                 foreach (var child in EnumerateMenuItems(mi.Items))
                     yield return child;
             }
+        }
+    }
+
+    private void LoadNameFromJson()
+    {
+        _currentName = DefaultName;
+        try
+        {
+            if (!File.Exists(_stateJsonPath))
+            {
+                return;
+            }
+
+            var jsonContent = File.ReadAllText(_stateJsonPath);
+            using var jsonDoc = JsonDocument.Parse(jsonContent);
+            var root = jsonDoc.RootElement;
+
+            // 优先使用 Name 字段，如果没有则使用 TesterName 字段（兼容旧数据）
+            if (root.TryGetProperty("Name", out var nameElement))
+            {
+                var nameValue = nameElement.GetString();
+                if (!string.IsNullOrWhiteSpace(nameValue))
+                {
+                    _currentName = nameValue.Trim();
+                }
+            }
+            else if (root.TryGetProperty("TesterName", out var testerNameElement))
+            {
+                var nameValue = testerNameElement.GetString();
+                if (!string.IsNullOrWhiteSpace(nameValue))
+                {
+                    _currentName = nameValue.Trim();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"读取姓名失败，使用默认值: {ex.Message}");
+            _currentName = DefaultName;
+        }
+    }
+
+    private void SaveNameToJson(string name)
+    {
+        try
+        {
+            // 确保目录存在
+            var directory = Path.GetDirectoryName(_stateJsonPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            // 读取现有 JSON 文件（如果存在）
+            Dictionary<string, JsonElement> stateData = new();
+            if (File.Exists(_stateJsonPath))
+            {
+                try
+                {
+                    var jsonContent = File.ReadAllText(_stateJsonPath);
+                    using var jsonDoc = JsonDocument.Parse(jsonContent);
+                    var root = jsonDoc.RootElement;
+                    
+                    // 复制所有现有字段，但排除 TesterName 字段
+                    foreach (var property in root.EnumerateObject())
+                    {
+                        // 跳过 TesterName 字段（与 Name 字段含义相同）
+                        if (property.Name != "TesterName")
+                        {
+                            stateData[property.Name] = property.Value.Clone();
+                        }
+                    }
+                }
+                catch
+                {
+                    // 如果读取失败，使用空字典
+                }
+            }
+
+            // 构建新的 JSON 对象
+            var jsonObject = new Dictionary<string, object?>();
+            foreach (var kvp in stateData)
+            {
+                var element = kvp.Value;
+                if (element.ValueKind == JsonValueKind.String)
+                {
+                    jsonObject[kvp.Key] = element.GetString();
+                }
+                else if (element.ValueKind == JsonValueKind.Number)
+                {
+                    if (element.TryGetInt32(out var intValue))
+                    {
+                        jsonObject[kvp.Key] = intValue;
+                    }
+                    else
+                    {
+                        jsonObject[kvp.Key] = element.GetDouble();
+                    }
+                }
+                else if (element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False)
+                {
+                    jsonObject[kvp.Key] = element.GetBoolean();
+                }
+                else if (element.ValueKind == JsonValueKind.Null)
+                {
+                    jsonObject[kvp.Key] = null;
+                }
+            }
+
+            // 更新或添加 Name 字段（直接设置字符串值，不使用 JsonElement）
+            jsonObject["Name"] = name;
+
+            // 保存回文件，使用不转义非 ASCII 字符的编码器
+            var options = new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            var jsonString = JsonSerializer.Serialize(jsonObject, options);
+            File.WriteAllText(_stateJsonPath, jsonString, Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"保存姓名失败: {ex.Message}");
+        }
+    }
+
+    private void LoadTimerSettingsFromJson()
+    {
+        _timerHours = 0;
+        _timerMinutes = 0;
+        _timerSeconds = 0;
+        _isCountdownEnabled = false;
+        try
+        {
+            if (!File.Exists(_stateJsonPath))
+            {
+                return;
+            }
+
+            var jsonContent = File.ReadAllText(_stateJsonPath);
+            using var jsonDoc = JsonDocument.Parse(jsonContent);
+            var root = jsonDoc.RootElement;
+
+            // 加载时、分、秒
+            if (root.TryGetProperty("TimerHours", out var hoursElement) && hoursElement.ValueKind == JsonValueKind.Number)
+            {
+                if (hoursElement.TryGetInt32(out var hours))
+                {
+                    _timerHours = hours;
+                }
+            }
+            if (root.TryGetProperty("TimerMinutes", out var minutesElement) && minutesElement.ValueKind == JsonValueKind.Number)
+            {
+                if (minutesElement.TryGetInt32(out var minutes))
+                {
+                    _timerMinutes = minutes;
+                }
+            }
+            if (root.TryGetProperty("TimerSeconds", out var secondsElement) && secondsElement.ValueKind == JsonValueKind.Number)
+            {
+                if (secondsElement.TryGetInt32(out var seconds))
+                {
+                    _timerSeconds = seconds;
+                }
+            }
+
+            // 加载倒计时状态
+            if (root.TryGetProperty("IsCountdownEnabled", out var countdownElement))
+            {
+                if (countdownElement.ValueKind == JsonValueKind.True || countdownElement.ValueKind == JsonValueKind.False)
+                {
+                    _isCountdownEnabled = countdownElement.GetBoolean();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"读取计时设置失败，使用默认值: {ex.Message}");
+            _timerHours = 0;
+            _timerMinutes = 0;
+            _timerSeconds = 0;
+            _isCountdownEnabled = false;
+        }
+    }
+
+    private void SaveTimerSettingsToJson(int hours, int minutes, int seconds, bool isCountdownEnabled)
+    {
+        try
+        {
+            // 确保目录存在
+            var directory = Path.GetDirectoryName(_stateJsonPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            // 读取现有 JSON 文件（如果存在）
+            Dictionary<string, JsonElement> stateData = new();
+            if (File.Exists(_stateJsonPath))
+            {
+                try
+                {
+                    var jsonContent = File.ReadAllText(_stateJsonPath);
+                    using var jsonDoc = JsonDocument.Parse(jsonContent);
+                    var root = jsonDoc.RootElement;
+                    
+                    // 复制所有现有字段
+                    foreach (var property in root.EnumerateObject())
+                    {
+                        stateData[property.Name] = property.Value.Clone();
+                    }
+                }
+                catch
+                {
+                    // 如果读取失败，使用空字典
+                }
+            }
+
+            // 构建新的 JSON 对象
+            var jsonObject = new Dictionary<string, object?>();
+            foreach (var kvp in stateData)
+            {
+                var element = kvp.Value;
+                if (element.ValueKind == JsonValueKind.String)
+                {
+                    jsonObject[kvp.Key] = element.GetString();
+                }
+                else if (element.ValueKind == JsonValueKind.Number)
+                {
+                    if (element.TryGetInt32(out var intValue))
+                    {
+                        jsonObject[kvp.Key] = intValue;
+                    }
+                    else
+                    {
+                        jsonObject[kvp.Key] = element.GetDouble();
+                    }
+                }
+                else if (element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False)
+                {
+                    jsonObject[kvp.Key] = element.GetBoolean();
+                }
+                else if (element.ValueKind == JsonValueKind.Null)
+                {
+                    jsonObject[kvp.Key] = null;
+                }
+            }
+
+            // 更新或添加时、分、秒和倒计时状态字段
+            jsonObject["TimerHours"] = hours;
+            jsonObject["TimerMinutes"] = minutes;
+            jsonObject["TimerSeconds"] = seconds;
+            jsonObject["IsCountdownEnabled"] = isCountdownEnabled;
+
+            // 保存回文件，使用不转义非 ASCII 字符的编码器
+            var options = new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            var jsonString = JsonSerializer.Serialize(jsonObject, options);
+            File.WriteAllText(_stateJsonPath, jsonString, Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"保存计时设置失败: {ex.Message}");
         }
     }
 }

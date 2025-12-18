@@ -14,5 +14,6 @@
         <StyleInclude Source="WindowStyles.axaml" />
         <StyleInclude Source="MenuStyles.axaml" />
         <StyleInclude Source="DialogStyles.axaml" />
+        <StyleInclude Source="TextBoxStyles.axaml" />
     </Application.Styles>
 </Application>

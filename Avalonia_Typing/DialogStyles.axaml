@@ -5,14 +5,18 @@
         <Setter Property="SizeToContent" Value="WidthAndHeight" />
         <Setter Property="CanResize" Value="False" />
         <Setter Property="WindowStartupLocation" Value="CenterOwner" />
+        <Setter Property="MinWidth" Value="320" />
+        <Setter Property="MinHeight" Value="200" />
     </Style>
 
     <!--  对话框按钮样式  -->
     <Style Selector="Button.dialog-button">
+        <Setter Property="FontFamily" Value="HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
         <Setter Property="MinWidth" Value="80" />
+        <Setter Property="MinHeight" Value="36" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="Margin" Value="0,0,8,0" />
+        <Setter Property="Margin" Value="0,15,0,0" />
     </Style>
 
     <!--  悬停背景，双重覆盖模板内 Border/ContentPresenter，避免主题覆盖  -->
@@ -38,6 +42,7 @@
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="FontFamily" Value="Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
+        <Setter Property="Foreground" Value="LightSlateGray" />
         <Setter Property="Margin" Value="0,0,0,8" />
     </Style>
 </Styles>

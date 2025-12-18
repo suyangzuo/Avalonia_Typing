@@ -1,10 +1,13 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Avalonia_Typing.Views.Dialogs.HelpDialogView"
-             Classes="dialog-content">
+<UserControl
+  x:Class="Avalonia_Typing.Views.Dialogs.HelpDialogView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Classes="dialog-content">
   <StackPanel Margin="0" Spacing="8">
-    <TextBlock Text="使用说明" Classes="dialog-title"/>
-    <TextBlock Text="在此放置使用说明内容。" Classes="dialog-text"/>
+    <TextBlock Classes="dialog-title" Text="使用说明" />
+    <TextBlock
+      Classes="dialog-text"
+      FontFamily="HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
+      Text="本应用基于 .NET 8.0 开发，使用 Avalonia 框架构建。" />
   </StackPanel>
 </UserControl>
-

@@ -9,6 +9,7 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="DialogStyles.axaml" />
+    <AvaloniaResource Include="TextBoxStyles.axaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,5 +23,6 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" />
   </ItemGroup>
 </Project>
