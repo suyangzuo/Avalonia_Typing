@@ -5,6 +5,7 @@
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:vm="using:Avalonia_Typing.ViewModels"
+  Focusable="True"
   d:DesignHeight="450"
   d:DesignWidth="800"
   x:DataType="vm:MainViewModel"
@@ -17,8 +18,224 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <TextBlock
-    HorizontalAlignment="Center"
-    VerticalAlignment="Center"
-    Text="{Binding Greeting}" />
+  <Grid VerticalAlignment="Center" Margin="0,0,0,75">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!--  上区域：信息显示栏  -->
+    <Grid
+      x:Name="TopInfoGrid"
+      Grid.Row="0"
+      MaxWidth="1000"
+      Margin="0,0,0,50">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <!--  1. 已输入：已输入字符数/总字符数  -->
+      <StackPanel
+        Grid.Column="0"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Center"
+        Orientation="Horizontal">
+        <TextBlock
+          VerticalAlignment="Center"
+          Foreground="#CCC"
+          Text="已输入" />
+        <TextBlock
+          Width="16"
+          Margin="2,0,-4,0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="：" />
+        <TextBlock
+          x:Name="TypedCharsText"
+          VerticalAlignment="Center"
+          Foreground="#4A90E2"
+          Text="0" />
+        <TextBlock
+          Margin="4,0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="/" />
+        <TextBlock
+          x:Name="TotalCharsText"
+          VerticalAlignment="Center"
+          Foreground="#4A90E2"
+          Text="0" />
+      </StackPanel>
+
+      <!--  2. 完成率：完成率百分比值  -->
+      <StackPanel
+        Grid.Column="1"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Center"
+        Orientation="Horizontal">
+        <TextBlock
+          VerticalAlignment="Center"
+          Foreground="#CCC"
+          Text="完成率" />
+        <TextBlock
+          Width="16"
+          Margin="2,0,-4,0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="：" />
+        <TextBlock
+          x:Name="CompletionRateText"
+          VerticalAlignment="Center"
+          Foreground="#4A90E2"
+          Text="0" />
+        <TextBlock
+          Margin="2,0,0,0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="%" />
+      </StackPanel>
+
+      <!--  3. 正确率：正确率百分比值  -->
+      <StackPanel
+        Grid.Column="2"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Center"
+        Orientation="Horizontal">
+        <TextBlock
+          VerticalAlignment="Center"
+          Foreground="#CCC"
+          Text="正确率" />
+        <TextBlock
+          Width="16"
+          Margin="2,0,-4,0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="：" />
+        <TextBlock
+          x:Name="AccuracyRateText"
+          VerticalAlignment="Center"
+          Foreground="#4A90E2"
+          Text="0" />
+        <TextBlock
+          Margin="2,0,0,0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="%" />
+      </StackPanel>
+
+      <!--  4. 速度：速度值  -->
+      <StackPanel
+        Grid.Column="3"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Center"
+        Orientation="Horizontal">
+        <TextBlock
+          VerticalAlignment="Center"
+          Foreground="#CCC"
+          Text="速度" />
+        <TextBlock
+          Width="16"
+          Margin="2,0,-4,0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="：" />
+        <TextBlock
+          x:Name="SpeedText"
+          VerticalAlignment="Center"
+          Foreground="#4A90E2"
+          Text="0" />
+      </StackPanel>
+
+      <!--  5. 用时：时值:分值:秒值  -->
+      <Grid
+        Grid.Column="4"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Center">
+        <StackPanel
+          HorizontalAlignment="Left"
+          VerticalAlignment="Center"
+          Orientation="Horizontal">
+          <TextBlock
+            VerticalAlignment="Center"
+            Foreground="#CCC"
+            Text="用时" />
+          <TextBlock
+            Width="16"
+            Margin="2,0,-4,0"
+            VerticalAlignment="Center"
+            Foreground="#888"
+            Text="：" />
+          <TextBlock
+            x:Name="HoursText"
+            VerticalAlignment="Center"
+            Foreground="#4A90E2"
+            Text="00" />
+          <TextBlock
+            VerticalAlignment="Center"
+            Foreground="#888"
+            Text=":" />
+          <TextBlock
+            x:Name="MinutesText"
+            VerticalAlignment="Center"
+            Foreground="#4A90E2"
+            Text="00" />
+          <TextBlock
+            VerticalAlignment="Center"
+            Foreground="#888"
+            Text=":" />
+          <TextBlock
+            x:Name="SecondsText"
+            VerticalAlignment="Center"
+            Foreground="#4A90E2"
+            Text="00" />
+        </StackPanel>
+      </Grid>
+
+      <!--  6. 姓名：姓名值  -->
+      <StackPanel
+        Grid.Column="5"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Center"
+        Orientation="Horizontal">
+        <TextBlock
+          VerticalAlignment="Center"
+          Foreground="#CCC"
+          Text="姓名" />
+        <TextBlock
+          Width="16"
+          Margin="2,0,-4,0"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="：" />
+        <TextBlock
+          x:Name="NameText"
+          VerticalAlignment="Center"
+          Foreground="#4A90E2"
+          Text="江湖人士" />
+      </StackPanel>
+    </Grid>
+
+    <!--  下区域：主内容区  -->
+    <Grid Grid.Row="1" Margin="50,0">
+      <ScrollViewer
+        x:Name="TextScrollViewer"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Hidden"
+        MaxWidth="1200"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Center">
+        <WrapPanel
+          x:Name="TextContentPanel"
+          Orientation="Horizontal"
+          HorizontalAlignment="Left"
+          VerticalAlignment="Top"
+          MaxWidth="1200" />
+      </ScrollViewer>
+    </Grid>
+  </Grid>
 </UserControl>

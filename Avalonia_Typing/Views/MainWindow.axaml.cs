@@ -37,10 +37,44 @@ public partial class MainWindow : Window
         InitializeComponent();
         LoadNameFromJson();
         LoadTimerSettingsFromJson();
+        UpdateMainViewName();
         LoadThirdLevelMenus();
         AttachMenuClickHandlers();
         ApplyRememberedSelection();
         AttachDialogMenuHandlers();
+        
+        // 添加文本输入事件处理
+        this.TextInput += MainWindow_TextInput;
+        
+        // 添加键盘事件处理（用于退格键）
+        this.KeyDown += MainWindow_KeyDown;
+    }
+    
+    private void MainWindow_TextInput(object? sender, Avalonia.Input.TextInputEventArgs e)
+    {
+        // 处理输入的文本（英文形式，只处理单个字符）
+        if (!string.IsNullOrEmpty(e.Text) && e.Text.Length == 1)
+        {
+            MainContent?.HandleInput(e.Text[0]);
+        }
+    }
+
+    private void MainWindow_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        // 处理退格键
+        if (e.Key == Avalonia.Input.Key.Back)
+        {
+            MainContent?.HandleBackspace();
+            e.Handled = true; // 标记为已处理，避免其他默认行为
+        }
+    }
+
+    private void UpdateMainViewName()
+    {
+        if (MainContent != null)
+        {
+            MainContent.UpdateName(_currentName);
+        }
     }
 
     private void LoadThirdLevelMenus()
@@ -202,18 +236,22 @@ public partial class MainWindow : Window
                 }
 
                 // 为三级菜单项添加点击事件
+                var currentMenuKey = menuKey; // 保存当前 menuKey 的副本
                 foreach (var thirdMenuItem in subMenuItem.Items.OfType<MenuItem>())
                 {
                     thirdMenuItem.Click += (sender, _) =>
                     {
-                        if (sender is MenuItem item && item.Tag is string fileName)
+                        if (sender is MenuItem item && item.Tag is string fileName && !string.IsNullOrEmpty(currentMenuKey))
                         {
                             // 记住选中的菜单项
-                            _rememberedSubMenuKey = menuKey;
+                            _rememberedSubMenuKey = currentMenuKey;
                             _rememberedThirdMenuFileName = fileName;
                             
                             // 应用记住的样式
                             ApplyRememberedSelection();
+                            
+                            // 加载对应的文章文件
+                            LoadArticleFile(currentMenuKey, fileName);
                         }
                     };
                 }
@@ -270,6 +308,33 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"应用记住的选中状态失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 加载文章文件
+    /// </summary>
+    private void LoadArticleFile(string menuKey, string fileName)
+    {
+        try
+        {
+            // 构建文件路径：avares://Avalonia_Typing/Assets/Texts/{menuKey}/{fileName}
+            var filePath = $"avares://Avalonia_Typing/Assets/Texts/{menuKey}/{fileName}";
+            var uri = new Uri(filePath);
+            
+            using var stream = AssetLoader.Open(uri);
+            using var reader = new StreamReader(stream);
+            var content = reader.ReadToEnd();
+            
+            // 加载文章到 MainView
+            MainContent?.LoadText(content);
+            
+            // 设置焦点以便接收键盘输入
+            MainContent?.Focus();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"加载文章文件失败: {ex.Message}");
         }
     }
 
@@ -391,6 +456,7 @@ public partial class MainWindow : Window
                 {
                     _currentName = newName;
                     SaveNameToJson(newName);
+                    UpdateMainViewName();
                 }
             }
             else if (titleText == "计时" && content is TimerDialogView timerView)

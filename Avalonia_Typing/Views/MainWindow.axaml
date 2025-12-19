@@ -196,6 +196,6 @@
                                 </MenuItem>
                         </MenuItem>
                 </Menu>
-                <views:MainView />
+                <views:MainView x:Name="MainContent" />
         </DockPanel>
 </Window>
