@@ -1,10 +1,59 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <!-- 默认使用 Exe -->
     <OutputType>Exe</OutputType>
-    <!--If you are willing to use platform-specific APIs, use conditional compilation.
-    See https://docs.avaloniaui.net/docs/guides/platforms/platform-specific-code/dotnet for more details.-->
+  </PropertyGroup>
+
+  <!-- Windows 平台使用 WinExe 隐藏控制台窗口 -->
+  <PropertyGroup
+    Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'win-arm64'">
+    <OutputType>WinExe</OutputType>
+  </PropertyGroup>
+
+  <!-- 如果没有指定 RuntimeIdentifier，根据当前操作系统判断 -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">
+    <OutputType>WinExe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--If
+    you are willing to use platform-specific APIs, use conditional compilation.
+    See https://docs.avaloniaui.net/docs/guides/platforms/platform-specific-code/dotnet for more
+    details.-->
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+
+    <!-- 可执行文件名 -->
+    <AssemblyName>十指禅</AssemblyName>
+
+    <!-- 应用程序图标 -->
+    <ApplicationIcon>..\Avalonia_Typing\Assets\ICO\十指禅.ico</ApplicationIcon>
+
+    <!-- 程序集属性（用于文件属性） -->
+    <AssemblyTitle>苏扬出品，必属精品</AssemblyTitle>
+    <AssemblyDescription>基于 Avalonia 的打字练习App</AssemblyDescription>
+    <Product>十指禅</Product>
+    <Company>苏扬</Company>
+    <Copyright>Copyright © 2024</Copyright>
+    <Version>1.0.0</Version>
+
+    <!-- 单文件发布配置 -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+  <!-- Debug 配置：包含调试信息 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- Release 配置：排除 .pdb 文件 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -14,7 +63,9 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <!--Condition
+    below is needed to remove Avalonia.Diagnostics package from build output in Release
+    configuration.-->
     <PackageReference Include="Avalonia.Diagnostics">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
