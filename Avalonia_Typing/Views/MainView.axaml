@@ -291,7 +291,7 @@
           FontFamily="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
           FontSize="16"
           VerticalAlignment="Center"
-          Foreground="#4A90E2"
+          Foreground="LightSkyBlue"
           Text="0">
           <TextBlock.Effect>
             <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="2" OffsetX="1" OffsetY="1" />

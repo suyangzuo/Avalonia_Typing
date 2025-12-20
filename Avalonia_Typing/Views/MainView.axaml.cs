@@ -282,7 +282,7 @@ public partial class MainView : UserControl
                 // 数字用蓝色
                 valueInlines?.Add(new Run(ch.ToString())
                 {
-                    Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x90, 0xE2))
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x87, 0xCE, 0xFA))
                 });
             }
         }
@@ -1011,38 +1011,39 @@ public partial class MainView : UserControl
             }
         }
 
+        // 在移动到下一个字符之前，检查刚才输入的字符是否是行尾
+        // 只有当输入了最后一个字符（即输入完当前行的最后一个字符）时才滚动
+        var justTypedCharIndex = _currentCharIndex; // 保存刚才输入的字符索引
+        if (justTypedCharIndex >= 0 && justTypedCharIndex < _outerBorders.Count && TextScrollViewer != null && !_isScrolling)
+        {
+            var justTypedOuterBorder = _outerBorders[justTypedCharIndex];
+            var scrollViewerBounds = TextScrollViewer.Bounds;
+            var transform = justTypedOuterBorder.TransformToVisual(TextScrollViewer);
+
+            if (transform.HasValue)
+            {
+                var matrix = transform.Value;
+                var point = matrix.Transform(new Point(0, 0));
+                var y = point.Y;
+                var bounds = justTypedOuterBorder.Bounds;
+
+                // 检测条件：
+                // 1. 刚才输入的字符在视口底部（视口底部90%位置以下）
+                // 2. 刚才输入的字符是它所在行的最后一个字符
+                var isAtBottom = y + bounds.Height >= scrollViewerBounds.Height * 0.9;
+                var isLastInLine = IsLastCharInLine(justTypedCharIndex);
+
+                if (isAtBottom && isLastInLine)
+                {
+                    SmoothScrollLines(4); // 向下滚动4行
+                }
+            }
+        }
+
         // 移动到下一个字符
         if (_currentCharIndex < _characterBlocks.Count - 1)
         {
             SetCurrentCharIndex(_currentCharIndex + 1);
-
-            // 检测是否输入完当前视口内最后一行的最后一个字符
-            // 只有当当前字符在视口底部，并且是这一行的最后一个字符时，才向下滚动4行
-            if (_currentCharIndex >= 0 && _currentCharIndex < _outerBorders.Count && TextScrollViewer != null && !_isScrolling)
-            {
-                var currentOuterBorder = _outerBorders[_currentCharIndex];
-                var scrollViewerBounds = TextScrollViewer.Bounds;
-                var transform = currentOuterBorder.TransformToVisual(TextScrollViewer);
-
-                if (transform.HasValue)
-                {
-                    var matrix = transform.Value;
-                    var point = matrix.Transform(new Point(0, 0));
-                    var y = point.Y;
-                    var bounds = currentOuterBorder.Bounds;
-
-                    // 检测条件：
-                    // 1. 当前字符在视口底部（视口底部90%位置以下）
-                    // 2. 当前字符是它所在行的最后一个字符
-                    var isAtBottom = y + bounds.Height >= scrollViewerBounds.Height * 0.9;
-                    var isLastInLine = IsLastCharInLine(_currentCharIndex);
-
-                    if (isAtBottom && isLastInLine)
-                    {
-                        SmoothScrollLines(4); // 向下滚动4行
-                    }
-                }
-            }
         }
         else
         {
