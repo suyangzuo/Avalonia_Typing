@@ -9,8 +9,8 @@ namespace Avalonia_Typing.Views.Dialogs;
 
 public partial class StatsDialogView : UserControl
 {
-    private const string PropertyNameColor = "#888888"; // 属性名称颜色（灰色）
-    private const string ColonColor = "#AAAAAA"; // 冒号颜色（浅灰色）
+    private const string PropertyNameColor = "#AAA"; // 属性名称颜色（灰色）
+    private const string ColonColor = "#888"; // 冒号颜色（浅灰色）
     private const string ValueColor = "#4A90E2"; // 属性值颜色（蓝色）
     private const string DecimalPointColor = "#888888"; // 小数点颜色（灰色）
     private const string PercentColor = "#888888"; // 百分号颜色（灰色）

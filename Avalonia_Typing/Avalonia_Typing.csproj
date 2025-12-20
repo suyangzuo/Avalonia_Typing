@@ -24,5 +24,6 @@
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" />
+    <PackageReference Include="ScottPlot.Avalonia" />
   </ItemGroup>
 </Project>

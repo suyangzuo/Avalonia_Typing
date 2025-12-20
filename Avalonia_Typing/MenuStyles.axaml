@@ -2,7 +2,7 @@
   <!--  资源字典：定义可重用的颜色、字体、尺寸等资源  -->
   <Styles.Resources>
     <!--  颜色资源（用于 Foreground 等需要 Color 的属性）  -->
-    <Color x:Key="MenuBackgroundColor">#242424</Color>
+    <Color x:Key="MenuBackgroundColor">Transparent</Color>
     <Color x:Key="MenuItemForegroundColor">#CCC</Color>
     <Color x:Key="TopLevelMenuBorderColor">#3CB</Color>
     <Color x:Key="SubMenuHoverBackgroundColor">#8467</Color>

@@ -17,7 +17,11 @@
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
         <DockPanel>
-                <Menu Name="MainMenu" DockPanel.Dock="Top">
+                <Border
+                        DockPanel.Dock="Top"
+                        BorderBrush="#1FFF"
+                        BorderThickness="0,0,0,1">
+                        <Menu Name="MainMenu">
                         <MenuItem Classes="top-level" Header="文件">
                                 <MenuItem Classes="sub-menu">
                                         <MenuItem.Header>
@@ -219,7 +223,8 @@
                                         </MenuItem.Header>
                                 </MenuItem>
                         </MenuItem>
-                </Menu>
+                        </Menu>
+                </Border>
                 <views:MainView x:Name="MainContent" />
         </DockPanel>
 </Window>
