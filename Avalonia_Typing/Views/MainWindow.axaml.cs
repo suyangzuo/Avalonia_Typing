@@ -48,6 +48,38 @@ public partial class MainWindow : Window
         
         // 添加键盘事件处理（用于退格键）
         this.KeyDown += MainWindow_KeyDown;
+        
+        // 订阅 MainView 的测试结束事件和文章重新加载请求事件
+        if (MainContent != null)
+        {
+            MainContent.TestEnded += MainContent_TestEnded;
+            MainContent.ArticleReloadRequested += MainContent_ArticleReloadRequested;
+            // 初始化倒计时设置
+            UpdateMainViewCountdown();
+        }
+    }
+
+    private async void MainContent_TestEnded()
+    {
+        // 测试结束时自动弹出统计对话框
+        await ShowDialogForMenu("统计", "📊", false);
+    }
+
+    private void MainContent_ArticleReloadRequested(string folderName, string articleName)
+    {
+        // 重新加载当前文章
+        var fileName = articleName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) 
+            ? articleName 
+            : $"{articleName}.txt";
+        LoadArticleFile(folderName, fileName);
+    }
+
+    private void UpdateMainViewCountdown()
+    {
+        if (MainContent != null)
+        {
+            MainContent.SetCountdown(_isCountdownEnabled, _timerHours, _timerMinutes, _timerSeconds);
+        }
     }
     
     private void MainWindow_TextInput(object? sender, Avalonia.Input.TextInputEventArgs e)
@@ -329,6 +361,18 @@ public partial class MainWindow : Window
             // 加载文章到 MainView
             MainContent?.LoadText(content);
             
+            // 设置文章信息（去除 .txt 扩展名）
+            var articleNameWithoutExt = fileName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) 
+                ? fileName.Substring(0, fileName.Length - 4) 
+                : fileName;
+            MainContent?.SetArticleInfo(menuKey, articleNameWithoutExt);
+            
+            // 加载文章后，确保倒计时设置是最新的（因为 LoadText 会重置倒计时）
+            if (_isCountdownEnabled && MainContent != null)
+            {
+                MainContent.SetCountdown(_isCountdownEnabled, _timerHours, _timerMinutes, _timerSeconds);
+            }
+            
             // 设置焦点以便接收键盘输入
             MainContent?.Focus();
         }
@@ -385,9 +429,23 @@ public partial class MainWindow : Window
     {
         TextBox? nameInput = null;
 
+        // 加载图标
+        WindowIcon? dialogIcon = null;
+        try
+        {
+            var iconUri = new Uri("avares://Avalonia_Typing/Assets/ICO/十指禅.ico");
+            using var iconStream = AssetLoader.Open(iconUri);
+            dialogIcon = new WindowIcon(iconStream);
+        }
+        catch
+        {
+            // 如果加载图标失败，使用 null（不设置图标）
+        }
+
         var dialog = new Window
         {
             Title = $"{emoji} {titleText}",
+            Icon = dialogIcon
         };
         dialog.Classes.Add("dialog-window");
 
@@ -395,7 +453,7 @@ public partial class MainWindow : Window
         {
             "姓名" => new NameDialogView(),
             "计时" => new TimerDialogView(),
-            "统计" => new StatsDialogView(),
+            "统计" => CreateStatsDialogView(),
             "使用说明" => new HelpDialogView(),
             "关于" => new AboutDialogView(),
             _ => new TextBlock { Text = $"这里是“{titleText}”对话框内容。", TextWrapping = TextWrapping.Wrap }
@@ -467,6 +525,8 @@ public partial class MainWindow : Window
                 _timerSeconds = timerView.Seconds;
                 _isCountdownEnabled = timerView.IsCountdown;
                 SaveTimerSettingsToJson(_timerHours, _timerMinutes, _timerSeconds, _isCountdownEnabled);
+                // 更新 MainView 的倒计时设置
+                UpdateMainViewCountdown();
             }
             dialog.Close(true);
         };
@@ -495,6 +555,30 @@ public partial class MainWindow : Window
         };
 
         await dialog.ShowDialog(this);
+    }
+
+    /// <summary>
+    /// 创建统计对话框视图
+    /// </summary>
+    private StatsDialogView CreateStatsDialogView()
+    {
+        var statsView = new StatsDialogView();
+        
+        // 获取统计数据
+        if (MainContent != null)
+        {
+            var stats = MainContent.GetTestStatistics();
+            bool isTestEnded = MainContent.IsTestEnded();
+            statsView.SetStatistics(_currentName, stats, isTestEnded);
+        }
+        else
+        {
+            // 如果没有 MainContent，传递空的统计数据和 false
+            var emptyStats = new TestStatistics();
+            statsView.SetStatistics(_currentName, emptyStats, false);
+        }
+        
+        return statsView;
     }
 
     private static IEnumerable<MenuItem> EnumerateMenuItems(IEnumerable items)

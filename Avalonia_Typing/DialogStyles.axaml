@@ -6,7 +6,6 @@
         <Setter Property="CanResize" Value="False" />
         <Setter Property="WindowStartupLocation" Value="CenterOwner" />
         <Setter Property="MinWidth" Value="320" />
-        <Setter Property="MinHeight" Value="200" />
     </Style>
 
     <!--  对话框按钮样式  -->
@@ -44,5 +43,12 @@
         <Setter Property="FontFamily" Value="Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑" />
         <Setter Property="Foreground" Value="LightSlateGray" />
         <Setter Property="Margin" Value="0,0,0,8" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <!--  对话框内文本框样式  -->
+    <Style Selector="TextBox.dialog-textbox">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
 </Styles>

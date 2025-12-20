@@ -7,10 +7,10 @@
         xmlns:views="using:Avalonia_Typing.Views"
         xmlns:vm="using:Avalonia_Typing.ViewModels"
         Title="十指禅"
-        Width="1200"
-        Height="750"
-        MinWidth="800"
-        MinHeight="500"
+        Width="1400"
+        Height="800"
+        MinWidth="1000"
+        MinHeight="750"
         d:DesignHeight="1000"
         d:DesignWidth="1500"
         Icon="/Assets/ICO/十指禅.ico"
@@ -22,8 +22,12 @@
                                 <MenuItem Classes="sub-menu">
                                         <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="🚪" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
-                                                        <TextBlock Text="退出" VerticalAlignment="Center" />
+                                                        <TextBlock
+                                                                Margin="-6,0,8,0"
+                                                                VerticalAlignment="Center"
+                                                                FontFamily="Noto Color Emoji, Segoe UI Emoji"
+                                                                Text="🚪" />
+                                                        <TextBlock VerticalAlignment="Center" Text="退出" />
                                                 </StackPanel>
                                         </MenuItem.Header>
                                 </MenuItem>
@@ -32,24 +36,36 @@
                                 <MenuItem Classes="sub-menu">
                                         <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="👤" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
-                                                        <TextBlock Text="姓名" VerticalAlignment="Center" />
+                                                        <TextBlock
+                                                                Margin="-6,0,8,0"
+                                                                VerticalAlignment="Center"
+                                                                FontFamily="Noto Color Emoji, Segoe UI Emoji"
+                                                                Text="👤" />
+                                                        <TextBlock VerticalAlignment="Center" Text="姓名" />
                                                 </StackPanel>
                                         </MenuItem.Header>
                                 </MenuItem>
                                 <MenuItem Classes="sub-menu">
                                         <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="⏱️" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
-                                                        <TextBlock Text="计时" VerticalAlignment="Center" />
+                                                        <TextBlock
+                                                                Margin="-6,0,8,0"
+                                                                VerticalAlignment="Center"
+                                                                FontFamily="Noto Color Emoji, Segoe UI Emoji"
+                                                                Text="⏱️" />
+                                                        <TextBlock VerticalAlignment="Center" Text="计时" />
                                                 </StackPanel>
                                         </MenuItem.Header>
                                 </MenuItem>
                                 <MenuItem Classes="sub-menu">
                                         <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="📊" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
-                                                        <TextBlock Text="统计" VerticalAlignment="Center" />
+                                                        <TextBlock
+                                                                Margin="-6,0,8,0"
+                                                                VerticalAlignment="Center"
+                                                                FontFamily="Noto Color Emoji, Segoe UI Emoji"
+                                                                Text="📊" />
+                                                        <TextBlock VerticalAlignment="Center" Text="统计" />
                                                 </StackPanel>
                                         </MenuItem.Header>
                                 </MenuItem>
@@ -181,16 +197,24 @@
                                 <MenuItem Classes="sub-menu">
                                         <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="❓" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
-                                                        <TextBlock Text="使用说明" VerticalAlignment="Center" />
+                                                        <TextBlock
+                                                                Margin="-6,0,8,0"
+                                                                VerticalAlignment="Center"
+                                                                FontFamily="Noto Color Emoji, Segoe UI Emoji"
+                                                                Text="❓" />
+                                                        <TextBlock VerticalAlignment="Center" Text="使用说明" />
                                                 </StackPanel>
                                         </MenuItem.Header>
                                 </MenuItem>
                                 <MenuItem Classes="sub-menu">
                                         <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="ℹ️" FontFamily="Noto Color Emoji, Segoe UI Emoji" Margin="-6,0,8,0" VerticalAlignment="Center" />
-                                                        <TextBlock Text="关于" VerticalAlignment="Center" />
+                                                        <TextBlock
+                                                                Margin="-6,0,8,0"
+                                                                VerticalAlignment="Center"
+                                                                FontFamily="Noto Color Emoji, Segoe UI Emoji"
+                                                                Text="ℹ️" />
+                                                        <TextBlock VerticalAlignment="Center" Text="关于" />
                                                 </StackPanel>
                                         </MenuItem.Header>
                                 </MenuItem>

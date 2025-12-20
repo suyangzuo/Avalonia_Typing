@@ -1,10 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,11 +38,25 @@ public partial class MainView : UserControl
     private Timer? _resizeDebounceTimer;
     private const int ResizeDebounceDelay = 100; // 延迟100毫秒
     private bool _lineSpacingApplied;
+    private EventHandler? _layoutUpdatedHandler; // 保存 LayoutUpdated 事件处理器，以便可以取消订阅
     private bool _isScrolling; // 标志：是否正在滚动，防止连续滚动
     private bool _testStarted; // 标志：是否已开始测试
     private DateTime _testStartTime; // 测试开始时间
     private Timer? _statsUpdateTimer; // 统计信息更新定时器
     private const int StatsUpdateInterval = 100; // 统计信息更新间隔（毫秒）
+    private int _backspaceCount = 0; // 退格次数统计
+    private bool _isCountdownEnabled = false; // 倒计时功能是否启用
+    private int _countdownHours = 0; // 倒计时小时数
+    private int _countdownMinutes = 0; // 倒计时分钟数
+    private int _countdownSeconds = 0; // 倒计时秒数
+    private int _remainingSeconds = 0; // 剩余秒数
+    private Timer? _countdownTimer; // 倒计时定时器
+    private bool _testEnded = false; // 测试是否已结束
+    private DateTime _testEndTime; // 测试结束时间
+    private string _currentArticleFolder = ""; // 当前文章文件夹名称
+    private string _currentArticleName = ""; // 当前文章名称（不含 .txt）
+    public event Action? TestEnded; // 测试结束事件
+    public event Action<string, string>? ArticleReloadRequested; // 文章重新加载请求事件
 
     public MainView()
     {
@@ -70,6 +89,20 @@ public partial class MainView : UserControl
 
     private void MainView_AttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
+        // 初始化完成率背景和显示为0（在控件加载后执行）
+        InitializeCompletionRateBackground();
+        UpdateCompletionRateDisplay(0);
+
+        // 禁止 TextScrollViewer 的鼠标滚轮滚动
+        if (TextScrollViewer != null)
+        {
+            TextScrollViewer.AddHandler(PointerWheelChangedEvent, (sender, args) =>
+            {
+                // 阻止滚轮事件，防止用户通过鼠标滚轮滚动 TextScrollViewer
+                args.Handled = true;
+            }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+        }
+
         // 获取父窗口
         var window = this.GetVisualAncestors().OfType<Window>().FirstOrDefault();
         if (window != null)
@@ -88,6 +121,27 @@ public partial class MainView : UserControl
             };
         }
     }
+
+    /// <summary>
+    /// 初始化完成率背景为完全透明
+    /// </summary>
+    private void InitializeCompletionRateBackground()
+    {
+        if (CompletionRateBorder == null) return;
+
+        var gradientBrush = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative)
+        };
+
+        // 完成率为0，全部透明
+        gradientBrush.GradientStops.Add(new GradientStop { Offset = 0, Color = Colors.Transparent });
+        gradientBrush.GradientStops.Add(new GradientStop { Offset = 1, Color = Colors.Transparent });
+
+        CompletionRateBorder.Background = gradientBrush;
+    }
+
 
     /// <summary>
     /// 防抖更新布局
@@ -121,6 +175,23 @@ public partial class MainView : UserControl
             }
 
             TextContentPanel.MaxWidth = Math.Min(availableWidth, maxWidth);
+            
+            // 窗口尺寸变化后，文本会重新换行，需要重新应用行距
+            // 重置行距应用标志，以便重新应用行距
+            if (_outerBorders.Count > 0)
+            {
+                _lineSpacingApplied = false;
+                // 延迟重新应用行距，等待布局完成
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    ApplyLineSpacingAfterLayout();
+                    // 重新滚动到当前字符，确保当前字符在缩放后仍然可见
+                    if (_currentCharIndex >= 0)
+                    {
+                        ScrollToCurrentChar();
+                    }
+                }, Avalonia.Threading.DispatcherPriority.Background);
+            }
         }
     }
 
@@ -148,6 +219,18 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
+    /// 在英文中文间添加空格（与 generate-file-list.js 保持一致）
+    /// </summary>
+    private string AddSpaceBetweenEnglishAndChinese(string text)
+    {
+        // 中文字符后跟英文字母：在中文字符和英文字母之间添加空格
+        text = Regex.Replace(text, @"([\u4e00-\u9fa5])([a-zA-Z])", "$1 $2");
+        // 英文字母后跟中文字符：在英文字母和中文字符之间添加空格
+        text = Regex.Replace(text, @"([a-zA-Z])([\u4e00-\u9fa5])", "$1 $2");
+        return text;
+    }
+
+    /// <summary>
     /// 更新已输入字符数显示
     /// </summary>
     public void UpdateTypedChars(int typed, int total)
@@ -157,11 +240,87 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
-    /// 更新完成率显示
+    /// 更新退格次数显示
     /// </summary>
-    public void UpdateCompletionRate(double rate)
+    public void UpdateBackspaceCount(int count)
     {
-        CompletionRateText.Text = FormatPercentage(rate);
+        if (BackspaceCountText != null)
+        {
+            BackspaceCountText.Text = count.ToString();
+        }
+    }
+
+    /// <summary>
+    /// 更新完成率显示（新的底部显示区域）
+    /// </summary>
+    public void UpdateCompletionRateDisplay(double rate)
+    {
+        if (CompletionRateValueText == null || CompletionRateBorder == null) return;
+
+        // 格式化完成率文本
+        var formattedRate = FormatPercentage(rate);
+
+        // 更新数字部分，需要将数字和小数点分开显示
+        // 先清除 Text 属性，因为 Text 和 Inlines 是互斥的
+        CompletionRateValueText.Text = null;
+        var valueInlines = CompletionRateValueText.Inlines;
+        valueInlines?.Clear();
+
+        // 解析数字部分，为数字和小数点设置不同颜色
+        foreach (var ch in formattedRate)
+        {
+            if (ch == '.')
+            {
+                // 小数点用深灰色
+                valueInlines?.Add(new Run(ch.ToString())
+                {
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88))
+                });
+            }
+            else if (char.IsDigit(ch))
+            {
+                // 数字用蓝色
+                valueInlines?.Add(new Run(ch.ToString())
+                {
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x90, 0xE2))
+                });
+            }
+        }
+
+        // 设置渐变背景：完成率部分用颜色，剩余部分透明
+        var completionPercent = Math.Max(0, Math.Min(100, rate)) / 100.0;
+
+        // 创建或更新渐变背景
+        var gradientBrush = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative)
+        };
+
+        var colorBlue = new Color(0x70, 0x4A, 0x90, 0xE2);
+
+        if (completionPercent <= 0)
+        {
+            // 完成率为0，全部透明
+            gradientBrush.GradientStops.Add(new GradientStop { Offset = 0, Color = Colors.Transparent });
+            gradientBrush.GradientStops.Add(new GradientStop { Offset = 1, Color = Colors.Transparent });
+        }
+        else if (completionPercent >= 1)
+        {
+            // 完成率为100%，全部有颜色
+            gradientBrush.GradientStops.Add(new GradientStop { Offset = 0, Color = colorBlue });
+            gradientBrush.GradientStops.Add(new GradientStop { Offset = 1, Color = colorBlue });
+        }
+        else
+        {
+            // 正常情况：从0到completionPercent使用颜色，从completionPercent到1使用透明
+            gradientBrush.GradientStops.Add(new GradientStop { Offset = 0, Color = colorBlue });
+            gradientBrush.GradientStops.Add(new GradientStop { Offset = completionPercent, Color = colorBlue });
+            gradientBrush.GradientStops.Add(new GradientStop { Offset = completionPercent, Color = Colors.Transparent });
+            gradientBrush.GradientStops.Add(new GradientStop { Offset = 1, Color = Colors.Transparent });
+        }
+
+        CompletionRateBorder.Background = gradientBrush;
     }
 
     /// <summary>
@@ -169,7 +328,37 @@ public partial class MainView : UserControl
     /// </summary>
     public void UpdateAccuracyRate(double rate)
     {
-        AccuracyRateText.Text = FormatPercentage(rate);
+        if (AccuracyRateText == null) return;
+
+        // 格式化正确率文本
+        var formattedRate = FormatPercentage(rate);
+
+        // 更新数字部分，需要将数字和小数点分开显示
+        // 先清除 Text 属性，因为 Text 和 Inlines 是互斥的
+        AccuracyRateText.Text = null;
+        var valueInlines = AccuracyRateText.Inlines;
+        valueInlines?.Clear();
+
+        // 解析数字部分，为数字和小数点设置不同颜色
+        foreach (var ch in formattedRate)
+        {
+            if (ch == '.')
+            {
+                // 小数点用深灰色
+                valueInlines?.Add(new Run(ch.ToString())
+                {
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88))
+                });
+            }
+            else if (char.IsDigit(ch))
+            {
+                // 数字用蓝色
+                valueInlines?.Add(new Run(ch.ToString())
+                {
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x90, 0xE2))
+                });
+            }
+        }
     }
 
     /// <summary>
@@ -199,6 +388,43 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
+    /// 设置倒计时参数
+    /// </summary>
+    public void SetCountdown(bool enabled, int hours, int minutes, int seconds)
+    {
+        _isCountdownEnabled = enabled;
+        _countdownHours = hours;
+        _countdownMinutes = minutes;
+        _countdownSeconds = seconds;
+        _remainingSeconds = hours * 3600 + minutes * 60 + seconds;
+        
+        // 根据倒计时状态更新标签文本
+        if (ElapsedTimeLabel != null)
+        {
+            ElapsedTimeLabel.Text = enabled ? "倒计时" : "用时";
+        }
+        
+        // 如果倒计时已启用，立即更新显示
+        if (enabled)
+        {
+            UpdateCountdownDisplay();
+        }
+        else
+        {
+            // 如果取消倒计时，重置显示为 00:00:00
+            UpdateElapsedTime(0, 0, 0);
+        }
+    }
+
+    /// <summary>
+    /// 手动结束测试（用于点击结束按钮）
+    /// </summary>
+    public void EndTestManually()
+    {
+        EndTest("手动结束");
+    }
+
+    /// <summary>
     /// 开始测试
     /// </summary>
     private void StartTest()
@@ -206,10 +432,20 @@ public partial class MainView : UserControl
         if (_testStarted) return;
 
         _testStarted = true;
+        _testEnded = false;
         _testStartTime = DateTime.Now; // 记录测试开始时间
 
         // 启动统计信息更新定时器
         StartStatsUpdateTimer();
+
+        // 如果倒计时已启用，启动倒计时
+        if (_isCountdownEnabled && _remainingSeconds > 0)
+        {
+            StartCountdown();
+        }
+
+        // 更新播放/暂停按钮状态
+        UpdatePlayPauseButton();
     }
 
     /// <summary>
@@ -238,11 +474,103 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
+    /// 启动倒计时
+    /// </summary>
+    private void StartCountdown()
+    {
+        StopCountdown(); // 先停止之前的倒计时
+
+        // 更新标签文本为"倒计时"
+        if (ElapsedTimeLabel != null)
+        {
+            ElapsedTimeLabel.Text = "倒计时";
+        }
+
+        _countdownTimer = new Timer(_ =>
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (_remainingSeconds > 0)
+                {
+                    _remainingSeconds--;
+                }
+                
+                // 更新显示（包括当 _remainingSeconds 为 0 时）
+                UpdateCountdownDisplay();
+                
+                // 如果倒计时到0，延迟一点时间确保显示更新，然后结束测试
+                if (_remainingSeconds == 0)
+                {
+                    // 延迟一点时间确保显示更新，然后结束测试
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        EndTest("倒计时结束");
+                    }, Avalonia.Threading.DispatcherPriority.Background);
+                }
+            });
+        }, null, 0, 1000); // 每秒更新一次
+    }
+
+    /// <summary>
+    /// 停止倒计时
+    /// </summary>
+    private void StopCountdown()
+    {
+        _countdownTimer?.Dispose();
+        _countdownTimer = null;
+    }
+
+    /// <summary>
+    /// 更新倒计时显示
+    /// </summary>
+    private void UpdateCountdownDisplay()
+    {
+        if (!_isCountdownEnabled) return;
+
+        // 确保使用 _remainingSeconds 的值，而不是重新计算
+        int hours = _remainingSeconds / 3600;
+        int minutes = (_remainingSeconds % 3600) / 60;
+        int seconds = _remainingSeconds % 60;
+        UpdateElapsedTime(hours, minutes, seconds);
+    }
+
+    /// <summary>
+    /// 结束测试
+    /// </summary>
+    private void EndTest(string reason = "")
+    {
+        if (_testEnded) return;
+
+        _testEnded = true;
+        _testStarted = false;
+        _testEndTime = DateTime.Now; // 记录测试结束时间
+        
+        // 在结束测试前，最后更新一次统计信息，确保完成率等数据正确
+        UpdateStatistics();
+        
+        StopStatsUpdateTimer();
+        StopCountdown();
+
+        // 恢复标签文本为"用时"（如果不是倒计时模式）
+        if (ElapsedTimeLabel != null && !_isCountdownEnabled)
+        {
+            ElapsedTimeLabel.Text = "用时";
+        }
+
+        // 触发测试结束事件
+        TestEnded?.Invoke();
+
+        // 更新播放/暂停按钮状态
+        UpdatePlayPauseButton();
+    }
+
+    /// <summary>
     /// 更新统计信息
     /// </summary>
     private void UpdateStatistics()
     {
-        if (!_testStarted || _characterBlocks.Count == 0) return;
+        // 允许在测试结束后也更新统计信息（用于确保完成率等数据正确）
+        if ((!_testStarted && !_testEnded) || _characterBlocks.Count == 0) return;
 
         // 计算已输入字符数（已输入状态的字符数）
         int typedChars = 0;
@@ -264,20 +592,36 @@ public partial class MainView : UserControl
         // 更新已输入字符数
         UpdateTypedChars(typedChars, totalChars);
 
+        // 更新退格次数
+        UpdateBackspaceCount(_backspaceCount);
+
         // 计算完成率
         double completionRate = totalChars > 0 ? (typedChars * 100.0 / totalChars) : 0;
-        UpdateCompletionRate(completionRate);
+        UpdateCompletionRateDisplay(completionRate);
 
         // 计算正确率
         double accuracyRate = typedChars > 0 ? (correctChars * 100.0 / typedChars) : 0;
         UpdateAccuracyRate(accuracyRate);
 
         // 计算用时（精确到毫秒）
+        // 如果倒计时启用，显示倒计时剩余时间；否则显示实际用时
         var elapsed = DateTime.Now - _testStartTime;
-        int totalSeconds = (int)elapsed.TotalSeconds;
-        int hours = totalSeconds / 3600;
-        int minutes = (totalSeconds % 3600) / 60;
-        int seconds = totalSeconds % 60;
+        int hours, minutes, seconds;
+        if (_isCountdownEnabled)
+        {
+            // 倒计时模式：显示剩余时间（包括0）
+            hours = _remainingSeconds / 3600;
+            minutes = (_remainingSeconds % 3600) / 60;
+            seconds = _remainingSeconds % 60;
+        }
+        else
+        {
+            // 正常模式：显示实际用时
+            int totalSeconds = (int)elapsed.TotalSeconds;
+            hours = totalSeconds / 3600;
+            minutes = (totalSeconds % 3600) / 60;
+            seconds = totalSeconds % 60;
+        }
         UpdateElapsedTime(hours, minutes, seconds);
 
         // 计算速度（字符/分钟）
@@ -305,15 +649,64 @@ public partial class MainView : UserControl
         _currentCharIndex = -1;
         _lineSpacingApplied = false; // 重置行距应用标志
         _testStarted = false; // 重置测试开始标志
+        _testEnded = false; // 重置测试结束标志
+        _backspaceCount = 0; // 重置退格次数
         StopStatsUpdateTimer(); // 停止统计信息更新定时器
+        StopCountdown(); // 停止倒计时
+        
+        // 重置倒计时到初始值（如果倒计时已启用）
+        if (_isCountdownEnabled)
+        {
+            // 使用保存的倒计时值重置（_countdownHours、_countdownMinutes、_countdownSeconds 应该已经被 SetCountdown 设置）
+            // 重新计算初始秒数，确保使用最新的设置值
+            var initialSeconds = _countdownHours * 3600 + _countdownMinutes * 60 + _countdownSeconds;
+            // 总是使用计算出的初始秒数重置（即使为0也要重置，因为用户可能设置了0秒倒计时）
+            _remainingSeconds = initialSeconds;
+            // 直接更新显示，不通过 UpdateCountdownDisplay（避免条件检查）
+            int hours = _remainingSeconds / 3600;
+            int minutes = (_remainingSeconds % 3600) / 60;
+            int seconds = _remainingSeconds % 60;
+            UpdateElapsedTime(hours, minutes, seconds);
+            // 保持标签文本为"倒计时"
+            if (ElapsedTimeLabel != null)
+            {
+                ElapsedTimeLabel.Text = "倒计时";
+            }
+        }
+        else
+        {
+            // 恢复标签文本为"用时"，并重置显示为 00:00:00
+            if (ElapsedTimeLabel != null)
+            {
+                ElapsedTimeLabel.Text = "用时";
+            }
+            UpdateElapsedTime(0, 0, 0);
+        }
 
         // 初始设置 WrapPanel 的宽度
         UpdateWrapPanelWidth();
 
-        // 将换行符替换为空格（统一处理各种换行符：\n, \r, \r\n）
+        // 更新播放/暂停按钮状态
+        UpdatePlayPauseButton();
+
+        // 将换行符替换为空格（统一处理各种换行符：\r\n, \n, \r，与 generate-file-list.js 保持一致）
         text = text.Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ");
         // 修剪文本起始和结束的空白字符
         text = text.Trim();
+        // 在英文中文间添加空格（与 generate-file-list.js 保持一致）
+        text = AddSpaceBetweenEnglishAndChinese(text);
+        
+        // 计算总字符数（在处理完文本后）
+        int totalChars = text.Length;
+        
+        // 重置所有统计信息显示
+        UpdateTypedChars(0, totalChars); // 重置已输入字符数和总字符数
+        UpdateBackspaceCount(0); // 重置退格次数显示
+        UpdateAccuracyRate(0); // 重置正确率显示
+        UpdateSpeed(0); // 重置速度显示
+        UpdateElapsedTime(0, 0, 0); // 重置用时显示
+        InitializeCompletionRateBackground(); // 重置完成率背景为完全透明
+        UpdateCompletionRateDisplay(0); // 重置完成率显示
 
         // 创建字体
         var fontFamily =
@@ -474,14 +867,27 @@ public partial class MainView : UserControl
             }, Avalonia.Threading.DispatcherPriority.Background);
         }
 
-        // 等待布局更新（只执行一次）
-        TextContentPanel.LayoutUpdated += (_, _) =>
+        // 等待布局更新（可以多次执行，用于窗口尺寸变化后重新应用行距）
+        // 先取消之前的事件订阅（如果存在）
+        if (_layoutUpdatedHandler != null && TextContentPanel != null)
+        {
+            TextContentPanel.LayoutUpdated -= _layoutUpdatedHandler;
+        }
+        
+        // 创建新的事件处理器
+        _layoutUpdatedHandler = (_, _) =>
         {
             if (!_lineSpacingApplied)
             {
                 ApplyLineSpacing();
             }
         };
+        
+        // 订阅事件
+        if (TextContentPanel != null)
+        {
+            TextContentPanel.LayoutUpdated += _layoutUpdatedHandler;
+        }
     }
 
     /// <summary>
@@ -617,26 +1023,31 @@ public partial class MainView : UserControl
                 var currentOuterBorder = _outerBorders[_currentCharIndex];
                 var scrollViewerBounds = TextScrollViewer.Bounds;
                 var transform = currentOuterBorder.TransformToVisual(TextScrollViewer);
-                
+
                 if (transform.HasValue)
                 {
                     var matrix = transform.Value;
                     var point = matrix.Transform(new Point(0, 0));
                     var y = point.Y;
                     var bounds = currentOuterBorder.Bounds;
-                    
+
                     // 检测条件：
                     // 1. 当前字符在视口底部（视口底部90%位置以下）
                     // 2. 当前字符是它所在行的最后一个字符
                     var isAtBottom = y + bounds.Height >= scrollViewerBounds.Height * 0.9;
                     var isLastInLine = IsLastCharInLine(_currentCharIndex);
-                    
+
                     if (isAtBottom && isLastInLine)
                     {
                         SmoothScrollLines(4); // 向下滚动4行
                     }
                 }
             }
+        }
+        else
+        {
+            // 所有文本输入完毕，结束测试
+            EndTest("所有文本输入完毕");
         }
     }
 
@@ -647,8 +1058,15 @@ public partial class MainView : UserControl
     {
         if (_currentCharIndex <= 0) return; // 已经在第一个字符，无法再退
 
-        // 将当前字符和之后已输入的字符都重置为灰色
-        for (int i = _currentCharIndex; i < _characterBlocks.Count; i++)
+        // 增加退格次数统计
+        _backspaceCount++;
+
+        // 退格时，应该从上一个已输入的字符开始重置（_currentCharIndex - 1）
+        // 因为 _currentCharIndex 指向的是下一个要输入的字符，而退格是要撤销最后一个已输入的字符
+        var startIndex = _currentCharIndex - 1;
+        
+        // 将上一个字符和之后已输入的字符都重置为灰色
+        for (int i = startIndex; i < _characterBlocks.Count; i++)
         {
             if (_characterStates[i] != CharState.NotTyped)
             {
@@ -659,7 +1077,7 @@ public partial class MainView : UserControl
         }
 
         // 退回到上一个字符
-        SetCurrentCharIndex(_currentCharIndex - 1);
+        SetCurrentCharIndex(startIndex);
 
         // 检测是否退到当前视口第一行第一个字符
         if (_currentCharIndex >= 0 && _currentCharIndex < _outerBorders.Count && TextScrollViewer != null && !_isScrolling)
@@ -679,7 +1097,7 @@ public partial class MainView : UserControl
                 // 2. 当前字符是它所在行的第一个字符
                 var isAtTop = y <= scrollViewerBounds.Height * 0.2;
                 var isFirstInLine = IsFirstCharInLine(_currentCharIndex);
-                
+
                 if (isAtTop && isFirstInLine)
                 {
                     SmoothScrollLines(-1); // 向上滚动1行
@@ -698,11 +1116,11 @@ public partial class MainView : UserControl
 
         var currentBorder = _outerBorders[charIndex];
         var nextBorder = _outerBorders[charIndex + 1];
-        
+
         // 通过比较Y坐标判断是否在同一行
         var currentY = Math.Round(currentBorder.Bounds.Top, 1);
         var nextY = Math.Round(nextBorder.Bounds.Top, 1);
-        
+
         // 如果下一个字符换行了，当前字符是行尾
         return Math.Abs(nextY - currentY) > 1;
     }
@@ -717,11 +1135,11 @@ public partial class MainView : UserControl
 
         var currentBorder = _outerBorders[charIndex];
         var previousBorder = _outerBorders[charIndex - 1];
-        
+
         // 通过比较Y坐标判断是否在同一行
         var currentY = Math.Round(currentBorder.Bounds.Top, 1);
         var previousY = Math.Round(previousBorder.Bounds.Top, 1);
-        
+
         // 如果上一个字符换行了，当前字符是行首
         return Math.Abs(previousY - currentY) > 1;
     }
@@ -738,10 +1156,10 @@ public partial class MainView : UserControl
         {
             var currentBorder = _outerBorders[i];
             var nextBorder = _outerBorders[i + 1];
-            
+
             var currentY = Math.Round(currentBorder.Bounds.Top, 1);
             var nextY = Math.Round(nextBorder.Bounds.Top, 1);
-            
+
             // 如果下一个字符换行了（Y坐标不同），计算行高
             if (Math.Abs(nextY - currentY) > 1)
             {
@@ -758,19 +1176,19 @@ public partial class MainView : UserControl
                     }
                     if (j == 0) lineStartIndex = 0;
                 }
-                
+
                 // 找到下一行的第一个字符
                 var nextLineStartIndex = i + 1;
-                
+
                 // 计算两行第一个字符之间的实际距离
                 var lineStartBorder = _outerBorders[lineStartIndex];
                 var nextLineStartBorder = _outerBorders[nextLineStartIndex];
-                
+
                 var lineStartY = lineStartBorder.Bounds.Top;
                 var nextLineStartY = nextLineStartBorder.Bounds.Top;
-                
+
                 var actualLineHeight = nextLineStartY - lineStartY;
-                
+
                 // 如果测量值合理（在理论值的80%-120%范围内），使用它
                 var theoreticalHeight = TextFontSize + LineSpacing;
                 if (actualLineHeight >= theoreticalHeight * 0.8 && actualLineHeight <= theoreticalHeight * 1.2)
@@ -779,7 +1197,7 @@ public partial class MainView : UserControl
                 }
             }
         }
-        
+
         // 如果无法测量，使用理论值
         return TextFontSize + LineSpacing;
     }
@@ -801,19 +1219,27 @@ public partial class MainView : UserControl
             var startOffset = TextScrollViewer.Offset.Y;
             var distance = targetOffset - startOffset;
             var duration = TimeSpan.FromMilliseconds(300); // 300毫秒的动画时长
-            var steps = 60; // 增加步骤数，让动画更流畅，减少残影
-            var stepDelay = duration.TotalMilliseconds / steps;
 
-            for (int i = 0; i <= steps; i++)
+            // 使用高精度计时器，基于实际经过的时间而不是固定步骤数
+            var stopwatch = Stopwatch.StartNew();
+            var startTime = stopwatch.ElapsedMilliseconds;
+
+            // 使用较小的更新间隔以确保流畅（约16ms，对应60Hz，但实际基于时间计算）
+            var updateInterval = TimeSpan.FromMilliseconds(16); // 约60fps的更新频率
+
+            while (stopwatch.ElapsedMilliseconds < duration.TotalMilliseconds)
             {
-                var progress = (double)i / steps;
+                // 计算实际经过的时间进度（0.0 到 1.0）
+                var elapsed = stopwatch.ElapsedMilliseconds;
+                var progress = Math.Min(1.0, elapsed / duration.TotalMilliseconds);
+
                 // 使用缓动函数（ease-in-out）
                 var easedProgress = progress < 0.5
                     ? 2 * progress * progress
                     : 1 - Math.Pow(-2 * progress + 2, 2) / 2;
-                
+
                 var currentOffset = startOffset + distance * easedProgress;
-                
+
                 // 在UI线程上更新滚动位置
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
@@ -823,8 +1249,23 @@ public partial class MainView : UserControl
                     }
                 }, Avalonia.Threading.DispatcherPriority.Render); // 使用 Render 优先级确保及时渲染
 
-                await Task.Delay((int)stepDelay);
+                // 等待更新间隔，但确保不超过剩余时间
+                var remainingTime = duration.TotalMilliseconds - elapsed;
+                var delayTime = Math.Min(updateInterval.TotalMilliseconds, remainingTime);
+                if (delayTime > 0)
+                {
+                    await Task.Delay((int)delayTime);
+                }
             }
+
+            // 确保最终位置准确
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (TextScrollViewer != null)
+                {
+                    TextScrollViewer.Offset = new Vector(0, Math.Max(0, targetOffset));
+                }
+            }, Avalonia.Threading.DispatcherPriority.Render);
         }
         finally
         {
@@ -851,7 +1292,7 @@ public partial class MainView : UserControl
             {
                 if (TextScrollViewer == null) return;
                 if (_isScrolling) return; // 如果正在平滑滚动，不执行自动滚动
-                if (savedIndex != _currentCharIndex) 
+                if (savedIndex != _currentCharIndex)
                 {
                     // 如果索引已改变，取消事件订阅并返回
                     currentBorder.LayoutUpdated -= OnLayoutUpdated;
@@ -892,4 +1333,137 @@ public partial class MainView : UserControl
 
         currentBorder.LayoutUpdated += OnLayoutUpdated;
     }
+
+    /// <summary>
+    /// 设置当前文章信息
+    /// </summary>
+    public void SetArticleInfo(string folderName, string articleName)
+    {
+        _currentArticleFolder = folderName;
+        _currentArticleName = articleName;
+    }
+
+    /// <summary>
+    /// 检查测试是否已结束
+    /// </summary>
+    public bool IsTestEnded()
+    {
+        return _testEnded;
+    }
+
+    /// <summary>
+    /// 检查是否有文章加载
+    /// </summary>
+    public bool HasArticleLoaded()
+    {
+        return _characterBlocks.Count > 0 && !string.IsNullOrEmpty(_currentArticleFolder);
+    }
+
+    /// <summary>
+    /// 播放/暂停按钮点击事件
+    /// </summary>
+    private void PlayPauseButton_Click(object? sender, RoutedEventArgs e)
+    {
+        // 阻止按钮获得焦点
+        e.Handled = true;
+        
+        // 如果没有文章加载，什么也不做
+        if (!HasArticleLoaded()) return;
+
+        if (_testStarted)
+        {
+            // 测试进行中，点击暂停（结束测试）
+            EndTest("手动暂停");
+        }
+        else
+        {
+            // 测试未开始，点击播放（重新开始测试）
+            // 重新开始测试意味着重新载入文章，重置各项测试数据
+            ReloadCurrentArticle();
+        }
+    }
+
+    /// <summary>
+    /// 重新加载当前文章（用于重新开始测试）
+    /// </summary>
+    public void ReloadCurrentArticle()
+    {
+        // 如果没有文章加载，什么也不做
+        if (!HasArticleLoaded()) return;
+
+        // 触发重新加载事件，让 MainWindow 重新加载当前文章
+        ArticleReloadRequested?.Invoke(_currentArticleFolder, _currentArticleName);
+    }
+
+    /// <summary>
+    /// 更新播放/暂停按钮状态
+    /// </summary>
+    private void UpdatePlayPauseButton()
+    {
+        if (PlayPauseButtonIcon == null) return;
+
+        if (_testStarted)
+        {
+            // 测试进行中，显示暂停图标
+            PlayPauseButtonIcon.Text = "⏸";
+        }
+        else
+        {
+            // 测试未开始，显示播放图标
+            PlayPauseButtonIcon.Text = "▶";
+        }
+    }
+
+    /// <summary>
+    /// 获取测试统计数据
+    /// </summary>
+    public TestStatistics GetTestStatistics()
+    {
+        // 计算已输入字符数和正确字符数
+        int typedChars = 0;
+        int correctChars = 0;
+        for (int i = 0; i < _characterStates.Count; i++)
+        {
+            if (_characterStates[i] != CharState.NotTyped)
+            {
+                typedChars++;
+                if (_characterStates[i] == CharState.Correct)
+                {
+                    correctChars++;
+                }
+            }
+        }
+
+        int totalChars = _characterBlocks.Count;
+        var elapsed = _testEndTime - _testStartTime;
+
+        return new TestStatistics
+        {
+            ArticleFolder = _currentArticleFolder,
+            ArticleName = _currentArticleName,
+            StartTime = _testStartTime,
+            EndTime = _testEndTime,
+            ElapsedTime = elapsed,
+            TypedChars = typedChars,
+            TotalChars = totalChars,
+            CorrectChars = correctChars,
+            BackspaceCount = _backspaceCount
+        };
+    }
+}
+
+/// <summary>
+/// 测试统计数据
+/// </summary>
+public class TestStatistics
+{
+    public string ArticleFolder { get; set; } = "";
+    public string ArticleName { get; set; } = "";
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public TimeSpan ElapsedTime { get; set; }
+    public int TypedChars { get; set; }
+    public int TotalChars { get; set; }
+    public int CorrectChars { get; set; }
+    public int BackspaceCount { get; set; }
 }

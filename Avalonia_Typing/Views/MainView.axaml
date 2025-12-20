@@ -5,10 +5,10 @@
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:vm="using:Avalonia_Typing.ViewModels"
-  Focusable="True"
   d:DesignHeight="450"
   d:DesignWidth="800"
   x:DataType="vm:MainViewModel"
+  Focusable="True"
   mc:Ignorable="d">
   <Design.DataContext>
     <!--
@@ -18,8 +18,10 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <Grid VerticalAlignment="Center" Margin="0,0,0,75">
+  <Grid Margin="0,0,0,75" VerticalAlignment="Center">
     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
@@ -29,7 +31,7 @@
       x:Name="TopInfoGrid"
       Grid.Row="0"
       MaxWidth="1000"
-      Margin="0,0,0,50">
+      Margin="50">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="*" />
@@ -72,7 +74,7 @@
           Text="0" />
       </StackPanel>
 
-      <!--  2. 完成率：完成率百分比值  -->
+      <!--  2. 退格次数：退格次数值  -->
       <StackPanel
         Grid.Column="1"
         HorizontalAlignment="Left"
@@ -81,7 +83,7 @@
         <TextBlock
           VerticalAlignment="Center"
           Foreground="#CCC"
-          Text="完成率" />
+          Text="退格次数" />
         <TextBlock
           Width="16"
           Margin="2,0,-4,0"
@@ -89,15 +91,10 @@
           Foreground="#888"
           Text="：" />
         <TextBlock
-          x:Name="CompletionRateText"
+          x:Name="BackspaceCountText"
           VerticalAlignment="Center"
           Foreground="#4A90E2"
           Text="0" />
-        <TextBlock
-          Margin="2,0,0,0"
-          VerticalAlignment="Center"
-          Foreground="#888"
-          Text="%" />
       </StackPanel>
 
       <!--  3. 正确率：正确率百分比值  -->
@@ -161,6 +158,7 @@
           VerticalAlignment="Center"
           Orientation="Horizontal">
           <TextBlock
+            x:Name="ElapsedTimeLabel"
             VerticalAlignment="Center"
             Foreground="#CCC"
             Text="用时" />
@@ -221,21 +219,126 @@
     </Grid>
 
     <!--  下区域：主内容区  -->
-    <Grid Grid.Row="1" Margin="50,0">
-      <ScrollViewer
-        x:Name="TextScrollViewer"
-        HorizontalScrollBarVisibility="Disabled"
-        VerticalScrollBarVisibility="Hidden"
-        MaxWidth="1200"
-        HorizontalAlignment="Stretch"
-        VerticalAlignment="Center">
-        <WrapPanel
-          x:Name="TextContentPanel"
-          Orientation="Horizontal"
-          HorizontalAlignment="Left"
-          VerticalAlignment="Top"
-          MaxWidth="1200" />
-      </ScrollViewer>
-    </Grid>
+    <Border
+      Grid.Row="1"
+      MaxWidth="1300"
+      Margin="50,0"
+      Padding="50"
+      Background="#151515">
+      <Grid>
+        <ScrollViewer
+          x:Name="TextScrollViewer"
+          MaxWidth="1200"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Center"
+          HorizontalScrollBarVisibility="Disabled"
+          VerticalScrollBarVisibility="Hidden">
+          <WrapPanel
+            x:Name="TextContentPanel"
+            MaxWidth="1200"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Orientation="Horizontal" />
+        </ScrollViewer>
+      </Grid>
+    </Border>
+
+    <!--  完成率显示区域  -->
+    <Border
+      Grid.Row="2"
+      MaxWidth="1300"
+      x:Name="CompletionRateBorder"
+      Margin="51,20,51,0"
+      Height="40"
+      BorderBrush="#3FFF"
+      BorderThickness="1"
+      HorizontalAlignment="Stretch"
+      VerticalAlignment="Center">
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+        </LinearGradientBrush>
+      </Border.Background>
+      <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Orientation="Horizontal"
+        Width="130">
+        <TextBlock
+          x:Name="CompletionRateLabelText"
+          FontFamily="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
+          FontSize="16"
+          VerticalAlignment="Center"
+          Foreground="#CCC"
+          Text="完成率">
+          <TextBlock.Effect>
+            <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="2" OffsetX="1" OffsetY="1" />
+          </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock
+          x:Name="CompletionRateColonText"
+          FontFamily="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
+          FontSize="16"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="："
+          Margin="2,0,0,0">
+          <TextBlock.Effect>
+            <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="2" OffsetX="1" OffsetY="1" />
+          </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock
+          x:Name="CompletionRateValueText"
+          FontFamily="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
+          FontSize="16"
+          VerticalAlignment="Center"
+          Foreground="#4A90E2"
+          Text="0">
+          <TextBlock.Effect>
+            <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="2" OffsetX="1" OffsetY="1" />
+          </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock
+          x:Name="CompletionRatePercentText"
+          FontFamily="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
+          FontSize="16"
+          VerticalAlignment="Center"
+          Foreground="#888"
+          Text="%"
+          Margin="2,0,0,0">
+          <TextBlock.Effect>
+            <DropShadowEffect Color="#000000" Opacity="0.5" BlurRadius="2" OffsetX="1" OffsetY="1" />
+          </TextBlock.Effect>
+        </TextBlock>
+      </StackPanel>
+    </Border>
+
+    <!--  播放/暂停按钮区域  -->
+    <Border
+      Grid.Row="3"
+      MaxWidth="1300"
+      Margin="51,25,51,0"
+      Height="50"
+      HorizontalAlignment="Stretch"
+      VerticalAlignment="Center">
+      <Button
+        x:Name="PlayPauseButton"
+        Width="50"
+        Height="50"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Background="Transparent"
+        BorderThickness="0"
+        Focusable="False"
+        Click="PlayPauseButton_Click">
+        <TextBlock
+          x:Name="PlayPauseButtonIcon"
+          FontSize="24"
+          FontFamily="Segoe UI Symbol, Arial"
+          Text="▶"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Foreground="#4A90E2" />
+      </Button>
+    </Border>
   </Grid>
 </UserControl>
