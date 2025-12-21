@@ -5,7 +5,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="using:Avalonia_Typing.Views"
-        xmlns:vm="using:Avalonia_Typing.ViewModels"
         Title="十指禅"
         Width="1400"
         Height="800"
@@ -44,7 +43,7 @@
                                                                 Margin="-6,0,8,0"
                                                                 VerticalAlignment="Center"
                                                                 FontFamily="Noto Color Emoji, Segoe UI Emoji"
-                                                                Text="👤" />
+                                                                Text="😅" />
                                                         <TextBlock VerticalAlignment="Center" Text="姓名" />
                                                 </StackPanel>
                                         </MenuItem.Header>
@@ -70,6 +69,18 @@
                                                                 FontFamily="Noto Color Emoji, Segoe UI Emoji"
                                                                 Text="📊" />
                                                         <TextBlock VerticalAlignment="Center" Text="统计" />
+                                                </StackPanel>
+                                        </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Classes="sub-menu" x:Name="RandomMenuItem">
+                                        <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                        <TextBlock
+                                                                Margin="-6,0,8,0"
+                                                                VerticalAlignment="Center"
+                                                                FontFamily="Noto Color Emoji, Segoe UI Emoji"
+                                                                Text="🎲" />
+                                                        <TextBlock VerticalAlignment="Center" Text="随机" />
                                                 </StackPanel>
                                         </MenuItem.Header>
                                 </MenuItem>

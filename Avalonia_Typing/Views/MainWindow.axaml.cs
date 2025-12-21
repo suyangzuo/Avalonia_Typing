@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using Avalonia.Platform;
 using System;
@@ -27,16 +28,19 @@ public partial class MainWindow : Window
         "Avalonia_Typing",
         "window.state.json");
     private string _currentName = DefaultName;
-    private bool _isCountdownEnabled = false; // 倒计时功能是否启用
-    private int _timerHours = 0; // 计时器小时数
-    private int _timerMinutes = 0; // 计时器分钟数
-    private int _timerSeconds = 0; // 计时器秒数
+    private bool _isCountdownEnabled; // 倒计时功能是否启用
+    private int _timerHours; // 计时器小时数
+    private int _timerMinutes; // 计时器分钟数
+    private int _timerSeconds; // 计时器秒数
+    private bool _isRandomEnabled = false; // 随机功能是否启用
+    private Random _random = new Random(); // 随机数生成器
 
     public MainWindow()
     {
         InitializeComponent();
         LoadNameFromJson();
         LoadTimerSettingsFromJson();
+        LoadRandomSettingFromJson();
         UpdateMainViewName();
         LoadThirdLevelMenus();
         AttachMenuClickHandlers();
@@ -56,6 +60,94 @@ public partial class MainWindow : Window
             MainContent.ArticleReloadRequested += MainContent_ArticleReloadRequested;
             // 初始化倒计时设置
             UpdateMainViewCountdown();
+
+            // 附加随机菜单项处理
+            AttachRandomMenuHandler();
+        }
+    }
+
+    /// <summary>
+    /// 将随机设置保存到 JSON 文件
+    /// </summary>
+    /// <param name="isRandomEnabled">是否启用随机功能</param>
+    private void SaveRandomSettingToJson(bool isRandomEnabled)
+    {
+        try
+        {
+            // 确保目录存在
+            var directory = Path.GetDirectoryName(_stateJsonPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            // 读取现有 JSON 文件（如果存在）
+            Dictionary<string, JsonElement> stateData = new();
+            if (File.Exists(_stateJsonPath))
+            {
+                try
+                {
+                    var jsonContent = File.ReadAllText(_stateJsonPath);
+                    using var jsonDoc = JsonDocument.Parse(jsonContent);
+                    var root = jsonDoc.RootElement;
+                    
+                    // 复制所有现有字段
+                    foreach (var property in root.EnumerateObject())
+                    {
+                        stateData[property.Name] = property.Value.Clone();
+                    }
+                }
+                catch
+                {
+                    // 如果读取失败，使用空字典
+                }
+            }
+
+            // 构建新的 JSON 对象
+            var jsonObject = new Dictionary<string, object?>();
+            foreach (var kvp in stateData)
+            {
+                var element = kvp.Value;
+                if (element.ValueKind == JsonValueKind.String)
+                {
+                    jsonObject[kvp.Key] = element.GetString();
+                }
+                else if (element.ValueKind == JsonValueKind.Number)
+                {
+                    if (element.TryGetInt32(out var intValue))
+                    {
+                        jsonObject[kvp.Key] = intValue;
+                    }
+                    else
+                    {
+                        jsonObject[kvp.Key] = element.GetDouble();
+                    }
+                }
+                else if (element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False)
+                {
+                    jsonObject[kvp.Key] = element.GetBoolean();
+                }
+                else if (element.ValueKind == JsonValueKind.Null)
+                {
+                    jsonObject[kvp.Key] = null;
+                }
+            }
+
+            // 更新或添加随机设置字段
+            jsonObject["IsRandomEnabled"] = isRandomEnabled;
+
+            // 保存回文件，使用不转义非 ASCII 字符的编码器
+            var options = new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            var jsonString = JsonSerializer.Serialize(jsonObject, options);
+            File.WriteAllText(_stateJsonPath, jsonString, Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"保存随机设置失败: {ex.Message}");
         }
     }
 
@@ -67,11 +159,118 @@ public partial class MainWindow : Window
 
     private void MainContent_ArticleReloadRequested(string folderName, string articleName)
     {
-        // 重新加载当前文章
-        var fileName = articleName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) 
-            ? articleName 
-            : $"{articleName}.txt";
-        LoadArticleFile(folderName, fileName);
+        if (_isRandomEnabled)
+        {
+            // 随机选择一篇文章
+            LoadRandomArticle();
+        }
+        else
+        {
+            // 重新加载当前文章
+            var fileName = articleName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) 
+                ? articleName 
+                : $"{articleName}.txt";
+            LoadArticleFile(folderName, fileName);
+        }
+    }
+
+    /// <summary>
+    /// 随机选择并加载一篇文章
+    /// </summary>
+    private void LoadRandomArticle()
+    {
+        try
+        {
+            // 读取 JSON 文件获取所有文章信息
+            var uri = new Uri("avares://Avalonia_Typing/Assets/Texts/file-list.json");
+            using var stream = AssetLoader.Open(uri);
+            using var reader = new StreamReader(stream);
+            var jsonContent = reader.ReadToEnd();
+            
+            var jsonDoc = JsonDocument.Parse(jsonContent);
+            var root = jsonDoc.RootElement;
+
+            // 获取所有类别
+            var categories = new List<string>();
+            foreach (var category in root.EnumerateObject())
+            {
+                categories.Add(category.Name);
+            }
+
+            // 随机选择一个类别
+            if (categories.Count == 0) return;
+            var randomCategory = categories[_random.Next(categories.Count)];
+            var categoryElement = root.GetProperty(randomCategory);
+
+            // 随机选择该类别中的一篇文章
+            var articles = new List<string>();
+            foreach (var article in categoryElement.EnumerateArray())
+            {
+                articles.Add(article.GetProperty("文件名").GetString()!);
+            }
+
+            if (articles.Count == 0) return;
+            var randomArticle = articles[_random.Next(articles.Count)];
+
+            // 记住随机选择的菜单项
+            _rememberedSubMenuKey = randomCategory;
+            _rememberedThirdMenuFileName = randomArticle;
+            ApplyRememberedSelection();
+
+            // 加载随机选中的文章
+            LoadArticleFile(randomCategory, randomArticle);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"随机加载文章失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 更新随机菜单项的显示状态
+    /// </summary>
+    private void UpdateRandomMenuItemDisplay()
+    {
+        if (RandomMenuItem != null)
+        {
+            RandomMenuItem.Header = new StackPanel
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Margin = new Thickness(-6, 0, 8, 0),
+                        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                        FontFamily = "Noto Color Emoji, Segoe UI Emoji",
+                        Text = _isRandomEnabled ? "✅" : "❌"
+                    },
+                    new TextBlock
+                    {
+                        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                        FontFamily = "Google Sans Code, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑",
+                        FontSize = 14,
+                        Text = "随机"
+                    }
+                }
+            };
+        }
+    }
+
+    /// <summary>
+    /// 附加随机菜单项的处理
+    /// </summary>
+    private void AttachRandomMenuHandler()
+    {
+        if (RandomMenuItem != null)
+        {
+            RandomMenuItem.Click += (sender, e) =>
+            {
+                _isRandomEnabled = !_isRandomEnabled;
+                UpdateRandomMenuItemDisplay();
+                SaveRandomSettingToJson(_isRandomEnabled);
+            };
+        }
     }
 
     private void UpdateMainViewCountdown()
@@ -386,6 +585,9 @@ public partial class MainWindow : Window
     {
         if (MainMenu == null) return;
 
+        // 附加退出菜单项处理
+        AttachQuitMenuHandler();
+
         // 目标菜单及其图标和按钮配置
         var dialogItems = new Dictionary<string, (string Emoji, bool HasCancel)>
         {
@@ -581,6 +783,31 @@ public partial class MainWindow : Window
         return statsView;
     }
 
+    private void AttachQuitMenuHandler()
+    {
+        // 查找"文件"菜单
+        MenuItem? fileMenu = MainMenu.Items.OfType<MenuItem>().FirstOrDefault(item => item.Header?.ToString() == "文件");
+        if (fileMenu == null) return;
+
+        // 查找"退出"菜单项
+        foreach (var menuItem in EnumerateMenuItems(fileMenu.Items))
+        {
+            // 检查是否是退出菜单项
+            if (GetSecondLevelText(menuItem) == "退出")
+            {
+                menuItem.Click += (_, _) =>
+                {
+                    // 使用 Avalonia 应用程序生命周期正确关闭应用
+                    if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                    {
+                        desktop.Shutdown();
+                    }
+                };
+                break;
+            }
+        }
+    }
+
     private static IEnumerable<MenuItem> EnumerateMenuItems(IEnumerable items)
     {
         foreach (var obj in items)
@@ -715,6 +942,41 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"保存姓名失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 从 JSON 文件加载随机设置
+    /// </summary>
+    private void LoadRandomSettingFromJson()
+    {
+        _isRandomEnabled = false;
+        try
+        {
+            if (!File.Exists(_stateJsonPath))
+            {
+                return;
+            }
+
+            var jsonContent = File.ReadAllText(_stateJsonPath);
+            using var jsonDoc = JsonDocument.Parse(jsonContent);
+            var root = jsonDoc.RootElement;
+
+            // 加载随机设置状态
+            if (root.TryGetProperty("IsRandomEnabled", out var randomElement))
+            {
+                if (randomElement.ValueKind == JsonValueKind.True || randomElement.ValueKind == JsonValueKind.False)
+                {
+                    _isRandomEnabled = randomElement.GetBoolean();
+                    // 更新菜单项显示状态
+                    UpdateRandomMenuItemDisplay();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"读取随机设置失败，使用默认值: {ex.Message}");
+            _isRandomEnabled = false;
         }
     }
 

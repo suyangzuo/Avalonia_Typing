@@ -1367,9 +1367,6 @@ public partial class MainView : UserControl
     {
         // 阻止按钮获得焦点
         e.Handled = true;
-        
-        // 如果没有文章加载，什么也不做
-        if (!HasArticleLoaded()) return;
 
         if (_testStarted)
         {
@@ -1379,7 +1376,8 @@ public partial class MainView : UserControl
         else
         {
             // 测试未开始，点击播放（重新开始测试）
-            // 重新开始测试意味着重新载入文章，重置各项测试数据
+            // 如果有文章加载，重新加载
+            // 注意：随机功能的处理在 MainWindow 中
             ReloadCurrentArticle();
         }
     }
@@ -1389,10 +1387,8 @@ public partial class MainView : UserControl
     /// </summary>
     public void ReloadCurrentArticle()
     {
-        // 如果没有文章加载，什么也不做
-        if (!HasArticleLoaded()) return;
-
         // 触发重新加载事件，让 MainWindow 重新加载当前文章
+        // 即使没有已加载的文章，也允许事件触发（MainWindow 会在随机启用时处理）
         ArticleReloadRequested?.Invoke(_currentArticleFolder, _currentArticleName);
     }
 

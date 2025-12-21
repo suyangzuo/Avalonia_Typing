@@ -8,6 +8,14 @@
     <TextBlock
       Classes="dialog-text"
       FontFamily="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
-      Text="本应用基于 .NET 8.0 开发，使用 Avalonia 框架构建。" />
+      Text="1. 选择文本，输入第一个字符自动开始测试" />
+    <TextBlock
+      Classes="dialog-text"
+      FontFamily="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
+      Text="2. 测试完成会自动弹出统计面板" />
+    <TextBlock
+      Classes="dialog-text"
+      FontFamily="Google Sans Code, Ubuntu Mono, Consolas, HarmonyOS Sans SC, Noto Sans CJK SC, 微软雅黑"
+      Text="3. 播放按钮作用：重新载入当前文本" />
   </StackPanel>
 </UserControl>
