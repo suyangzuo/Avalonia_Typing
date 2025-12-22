@@ -14,5 +14,6 @@
         <PackageVersion Include="Avalonia.Desktop" Version="11.3.9" />
         <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
         <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.1" />
+        <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" />
     </ItemGroup>
 </Project>

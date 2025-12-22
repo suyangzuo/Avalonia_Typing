@@ -70,8 +70,20 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Avalonia_Typing\Avalonia_Typing.csproj" />
   </ItemGroup>
+
+  <!-- 在 Linux 上，确保使用正确版本的 SkiaSharp 本地库 -->
+  <Target Name="CopyCorrectSkiaSharpLibrary" AfterTargets="Build" Condition="'$(OS)' == 'Unix' And '$(RuntimeIdentifier)' == 'linux-x64'">
+    <ItemGroup>
+      <CorrectSkiaSharpLib Include="$(NuGetPackageRoot)skiasharp.nativeassets.linux.nodependencies\3.119.0\runtimes\linux-x64\native\libSkiaSharp.so" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CorrectSkiaSharpLib)" 
+          DestinationFiles="$(OutputPath)libSkiaSharp.so" 
+          SkipUnchangedFiles="true" 
+          Condition="Exists('%(CorrectSkiaSharpLib.Identity)')" />
+  </Target>
 </Project>
